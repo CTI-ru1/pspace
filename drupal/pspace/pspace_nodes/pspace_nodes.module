@@ -34,6 +34,7 @@ $json=file_get_contents("$testbed/status/json");
 $status=get_object_vars(json_decode($json));
 
 $node_pref = variable_get_value('pspace_node_prefix');
+$cap_pref = variable_get_value('pspace_capability_prefix');
 
 if(isset($_GET['node']) && isset($status[$node_pref.$_GET['node']])){
 
@@ -43,7 +44,9 @@ $node_name=$_GET['node'];
 
 $i=0;
 foreach ($status[$node_pref.$node_name] as $node_readings){
-	$node[$i]= array($node_readings->capability, isset($node_readings->reading)? $node_readings->reading : $node_readings->stringReading );
+	$capability=str_replace($cap_pref,"",$node_readings->capability);
+
+	$node[$i]= array($capability, isset($node_readings->reading)? $node_readings->reading : $node_readings->stringReading );
 	$i++;
 }	
 

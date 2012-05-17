@@ -91,7 +91,7 @@ $rarray['link']= array(
    );
 */
    
- //new   
+ //new
  
  $var_rest = variable_get_value('pspace_rest');
  $var_plan = variable_get_value('pspace_image');
@@ -152,7 +152,7 @@ $form['configure']['rest'] = array(
 $form['configure']['image_plan_url'] = array( 
     '#type' => 'textfield',
     '#title' => t('Plan'),
-//	'#description' => 'Priority will be given to uploaded file',
+	'#description' => 'Must be an image file with less than 720px width',
 	'#required' =>TRUE,
 	'#default_value' => variable_get_value('pspace_image'),
 
@@ -202,6 +202,12 @@ form_set_error('','You cannot leave Uberdust REST empty!');
 //if(($form_state['values']['image_plan_url']==NULL)&&($form_state['values']['image_plan_upload']==NULL))
 if($form_state['values']['image_plan_url']==NULL)
 	form_set_error('','Invalid Plan');
+else{
+	$image_size=getimagesize($form_state['values']['image_plan_url']);
+	if ($image_size[0]>720)
+		form_set_error('','Image mustn\'t have more than 720px width');
+}
+
 
 	/*
 if 	($form_state['values']['image_plan_upload']!=NULL){

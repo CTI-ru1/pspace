@@ -17,12 +17,6 @@ $stoixeia['homepage']=array(
 return $stoixeia;
 }
 
-function pspace_main_init()
-{
- drupal_add_js(drupal_get_path('module', 'pspace_main') . '/pspace_main.js');
-
-}
-
 
 //-------------------------------------------
 //-------------- P-Space PAGES --------------
@@ -37,7 +31,7 @@ $testbed = variable_get_value('pspace_rest');
 
 
 $node_pref = variable_get_value('pspace_node_prefix');
-// $cap_pref = variable_get_value('pspace_capability_prefix');
+$cap_pref = variable_get_value('pspace_capability_prefix');
 // $ws_host = variable_get_value('pspace_websocket_host');
 // $ws_prot = variable_get_value('pspace_websocket_protocol');
 
@@ -56,10 +50,13 @@ foreach ($status as $key=>$value) {
 		
 	$j=0;	
 	foreach ($value as $node_readings){
-		$node[$node_readings->capability]= isset($node_readings->reading)? $node_readings->reading : $node_readings->stringReading ;
-		$stats[$j] = array($node_readings->capability, isset($node_readings->reading)? $node_readings->reading : $node_readings->stringReading );
+		$capability=str_replace($cap_pref,"",$node_readings->capability);
+		
+		$node[$capability]= isset($node_readings->reading)? $node_readings->reading : $node_readings->stringReading ;
+		$stats[$j] = array($capability, isset($node_readings->reading)? $node_readings->reading : $node_readings->stringReading );
 		$j++;
 	}	
+
 	
 	$cleankey=str_replace($node_pref,"",$key);
 
@@ -68,7 +65,7 @@ foreach ($status as $key=>$value) {
 	$row[$i][0]=l($cleankey,"status",array('query'=>array('node'=>"$cleankey")));
 
 	//room
-	$row[$i][1]= isset($node['room'])? $node['room'] : 'unknown';
+	//$row[$i][1]= isset($node['room'])? $node['room'] : 'unknown';
 	
 	//x
 	$row[$i][2]= isset($node['x'])? $node['x'] : '-';
@@ -80,11 +77,12 @@ foreach ($status as $key=>$value) {
 	$row[$i][4]= isset($node['z'])? $node['z'] : '-';
 
 	//nodetype
-	$row[$i][5]= isset($node['nodetype'])? $node['nodetype'] : 'unknown';
+	//$row[$i][5]= isset($node['nodetype'])? $node['nodetype'] : 'unknown';
 	
 	//status
+	/*
 	$row[$i][6]= theme ('image', array(
-		'path' => 'sites/all/themes/info.png',
+		'path' => '/sites/all/themes/info.png',
 		'alt' => 'status',
 		'width' => '24px',
 		'height' => '24px',
@@ -93,7 +91,7 @@ foreach ($status as $key=>$value) {
 			'id' => "$cleankey" ,
 			),
 		) );
-	
+	*/	
 
 	$showdivs[$i] = array(
 	'#theme' => 'table',
@@ -103,42 +101,60 @@ foreach ($status as $key=>$value) {
 	'#suffix' => '</div>',
 	);
 	
+
 	
 	if ((isset($node['x'])) && (isset($node['y']))){
 		$x=explode(".",$node['x']);
 		$y=explode(".",$node['y']);
-		$nodes.="<area shape=\"circle\" coords=\"".$x[0].",".$y[0].",5\" class=\"statusimage\" id=\"$cleankey\" alt=\"$cleankey\"/>";
-//		$nodes.="<area onclick=\"alert(1);\" shape=\"circle\" coords=\"".$x[0].",".$y[0].",5\" class=\"statusimage\" id=\"$cleankey\" alt=\"$cleankey\"/>";
+
+//old
+/*
+$nodes.="<circle cx=\"".$x[0]."\" cy=\"".$y[0]."\" r=\"5\" fill=\"blue\" id='$cleankey' onclick=\"nstatus(this.id)\" >\n
+<title>$cleankey</title>\n
+</circle>\n";
+*/
+
+//link
+$nodes.="<a xlink:href=\"/status?node=$cleankey\">\n<circle cx=\"".$x[0]."\" cy=\"".$y[0]."\" r=\"5\" fill=\"blue\" id='$cleankey' >\n
+<title>$cleankey</title>\n
+</circle></a>\n";
 	}
-	
+
+unset($node);
 $i++;
 }
 
-$rarray['pspace'] = array(
-	'#theme' => 'image',
-	'#path' =>  variable_get_value('pspace_image'),
-	'#prefix' => "<div class=\"mapper\" >",
-	'#title' => "P-Space Image",
-	'#alt' => "P-Space Image",
-	'#attributes' => array('usemap'=>'#nodemap'),
-
-);
 
 
-$header="<map name=\"nodemap\">";
-$footer="</map>";
-//$nodes=
+// svg
+$image_size=getimagesize(variable_get_value('pspace_image'));
+//width: $image_size[0]
+//height: $image_size[1]
+
+$svg_head="<?xml version=\"1.0\"?>\n<svg width=\"".$image_size[0]."\" height=\"".$image_size[1]."\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n";
+$meta="<metadata id=\"metadata3045\">image/svg+xml</metadata>\n";
+$g="<g>\n<title>P-Space</title>\n";
+
+$image="<image y=\"0\" x=\"0\" id=\"pspace\" xlink:href=\"".variable_get_value('pspace_image')."\"width=\"".$image_size[0]."\" height=\"".$image_size[1]."\" />\n";
+
+$g2="</g>\n";
+$svg_foot="</svg>\n";
 
 
- $rarray['map']= array(
-  '#markup' => $header.$nodes.$footer, 
-  	'#suffix' => '</div><br>',
+$markup= $svg_head.$meta.$g.$image.$nodes.$g2.$svg_foot;
+
+ $rarray['svg']= array(
+  '#markup' => $markup, 
+  '#prefix' => "<div class=\"svg\" >",
+  '#suffix' => "</div>",
   );
 
+
+//-----end svg
    
 $rarray['nodes'] = array(
 '#theme' => 'table',
-'#header'=> array('Node','room','x','y','z','nodetype','status'),
+'#header'=> array('Node','x','y','z'),
 '#rows' =>$row,
 '#prefix' => '<p>',
 '#suffix' => '</p>',
@@ -146,6 +162,25 @@ $rarray['nodes'] = array(
 
 
 $rarray['divs'] = $showdivs;
+
+
+
+
+//onclick show status?
+
+$script="";
+$header="<script type=\"text/javascript\">\n";
+$script.="function nstatus(image_id){
+		jQuery(\".\" + image_id).hide().slideDown(800); }";
+$footer="\n</script>";
+
+ $rarray['script_image']= array(
+  '#markup' => $header.$script.$footer, 
+  );
+
+	
+
+
 
 return $rarray;
 }
