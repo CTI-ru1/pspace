@@ -115,7 +115,7 @@ $nodes.="<circle cx=\"".$x[0]."\" cy=\"".$y[0]."\" r=\"5\" fill=\"blue\" id='$cl
 */
 
 //link
-$nodes.="<a xlink:href=\"/status?node=$cleankey\">\n<circle cx=\"".$x[0]."\" cy=\"".$y[0]."\" r=\"5\" fill=\"blue\" id='$cleankey' >\n
+$nodes.="<a xlink:href=\"status?node=$cleankey\">\n<circle cx=\"".$x[0]."\" cy=\"".$y[0]."\" r=\"5\" fill=\"blue\" id='$cleankey' >\n
 <title>$cleankey</title>\n
 </circle></a>\n";
 	}
