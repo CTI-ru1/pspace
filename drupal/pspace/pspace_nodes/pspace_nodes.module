@@ -1,0 +1,73 @@
+<?php
+
+//-------------------------------------------
+//-------------- P-Space HOOKS --------------
+//-------------------------------------------
+
+function pspace_nodes_menu()
+{
+$stoixeia=array();
+
+$stoixeia['status']=array(
+	'title'=> t('P-Space Node status Page'),
+	'page callback' => 'node_status',
+	'access callback'=>TRUE,
+	'type'=>MENU_CALLBACK,
+);
+
+return $stoixeia;
+}
+
+
+//-------------------------------------------
+//-------------- P-Space PAGES --------------
+//-------------------------------------------
+
+
+function node_status()
+{
+$rarray=array();
+
+$testbed = variable_get_value('pspace_rest');
+
+$json=file_get_contents("$testbed/status/json");
+$status=get_object_vars(json_decode($json));
+
+$node_pref = variable_get_value('pspace_node_prefix');
+
+if(isset($_GET['node']) && isset($status[$node_pref.$_GET['node']])){
+
+//$node_name='urn:wisebed:ctitestbed:0x498'; 
+
+$node_name=$_GET['node'];
+
+$i=0;
+foreach ($status[$node_pref.$node_name] as $node_readings){
+	$node[$i]= array($node_readings->capability, isset($node_readings->reading)? $node_readings->reading : $node_readings->stringReading );
+	$i++;
+}	
+
+//drupal_set_message("<pre>".print_r($node,TRUE)."</pre>");
+
+$rarray['node_name'] =  array(
+'#markup' => "<p><h1>$node_name</h1></p><br>",
+);
+
+$rarray['nodes'] = array(
+'#theme' => 'table',
+'#header'=> array('Capability','Latest Reading'),
+'#rows' =>$node,
+);
+
+}
+else{
+
+$rarray['node_name'] =  array(
+'#markup' => "<p><h1>Invalid Node</h1></p><br>",
+);
+
+}
+
+
+return $rarray;
+}

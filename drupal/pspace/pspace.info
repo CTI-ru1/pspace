@@ -1,0 +1,8 @@
+name = P-Space
+core = 7.x
+description = Module for uberdust view in P-Space
+package = Uberdust
+
+dependencies[] = variable
+
+version = "7.x-1.0"

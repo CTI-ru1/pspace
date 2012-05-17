@@ -1,0 +1,9 @@
+name = P-Space Nodes' Pages
+core = 7.x
+description = Status Pages for Nodes
+package = Uberdust
+
+dependencies[] = variable
+dependencies[] = pspace
+
+version = "7.x-1.0"

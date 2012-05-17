@@ -1,0 +1,9 @@
+name = P-Space Lights Page
+core = 7.x
+description = Lights Page
+package = Uberdust
+
+dependencies[] = variable
+dependencies[] = pspace
+
+version = "7.x-1.0"

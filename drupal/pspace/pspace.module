@@ -1,0 +1,246 @@
+<?php
+
+//-------------------------------------------
+//-------------- P-Space HOOKS --------------
+//-------------------------------------------
+
+function pspace_menu()
+{
+$stoixeia=array();
+
+$stoixeia['config']=array(
+'title'=>t('Uberdust Configure'),
+'page callback'=>'uberdust_config',
+'access arguments' => array('Configure Uberdust'),
+);
+
+return $stoixeia;
+}
+
+
+function pspace_permission() {
+  
+  $perm_array= array(
+    'Configure Uberdust' => array(
+      'title' => t('Configure Uberdust'), 
+	  'restrict access' => TRUE
+    ),
+  );
+	
+  return $perm_array;
+}
+
+function pspace_variable_info() {
+
+  $variable['pspace_rest'] = array(
+    'title' => t('Uberdust Rest'),
+//    'description' => t('URL of P-Space\'s Uberdust REST'),
+    'type' => 'string',
+  );
+  
+  $variable['pspace_image'] = array(
+    'title' => t('Pspace Plan'),
+//    'description' => t('P-Space plan URL'),
+    'type' => 'string',
+  );
+  
+  $variable['pspace_node_prefix'] = array(
+    'title' => t('Node Prefix'),
+//    'description' => t(''),
+    'type' => 'string',
+  );
+
+  $variable['pspace_capability_prefix'] = array(
+    'title' => t('Capability Prefix'),
+//    'description' => t(''),
+    'type' => 'string',
+  );
+
+  $variable['pspace_websocket_host'] = array(
+    'title' => t('Websocket Host'),
+//    'description' => t(''),
+    'type' => 'string',
+  );
+
+  $variable['pspace_websocket_protocol'] = array(
+    'title' => t('Websocket Protocol'),
+//    'description' => t(''),
+    'type' => 'string',
+  );  
+  
+  
+  return $variable;
+}  
+//-------------------------------------------
+//-------------- P-Space PAGES --------------
+//-------------------------------------------
+
+
+function uberdust_config()
+{
+$rarray=array();
+/*
+$rarray['link']= array(
+  '#theme' => 'link',
+  '#text' => 'Change Uberdust Rest',
+  '#path' => 'admin/config/system/variable/edit/pspace_rest',
+  '#options' => array(
+    'attributes' => array(),
+    'html' => FALSE,
+	)
+   );
+*/
+   
+ //new   
+ 
+ $var_rest = variable_get_value('pspace_rest');
+ $var_plan = variable_get_value('pspace_image');
+ $var_node = variable_get_value('pspace_node_prefix');
+ $var_cap = variable_get_value('pspace_capability_prefix');
+ $var_host = variable_get_value('pspace_websocket_host');
+ $var_prot = variable_get_value('pspace_websocket_protocol');
+ 
+ 
+ 
+ $header='<h2>Current Settings</h2><br>';
+ $config='<strong>Uberdust Rest</strong>: '.l($var_rest,$var_rest)."<br>";
+ $config.='<strong>P-Space Plan</strong>: '.l($var_plan,$var_plan)."<br>";
+ $config.='<strong>Node Prefix</strong>: \''.$var_node."'<br>";
+ $config.='<strong>Capability Prefix</strong>: \''.$var_cap."'<br>";
+ $config.='<strong>WebSocket Host</strong>: \''.$var_host."'<br>";
+ $config.='<strong>WebSocket Protocol</strong>: \''.$var_prot."'<br>";
+ 
+ 
+ 
+ $rarray['current']= array(
+  '#markup' => $header.$config,	  
+  '#prefix' => "<p>",
+  '#suffix' => "</p><br>",
+   );
+
+//form
+   
+  
+ $rarray['settings_form'] = drupal_get_form('configure_form'); 
+
+  
+return $rarray;
+}
+
+//form
+
+
+function configure_form($form_state)
+{
+
+   $form['configure'] = array(
+              '#title' => t('Change Settings'),
+               '#type' => 'fieldset',
+             '#prefix' => '<p>',
+             '#suffix' => '</p>',
+        '#collapsible' => TRUE,
+          '#collapsed' => TRUE,
+    );
+	
+$form['configure']['rest'] = array( 
+    '#type' => 'textfield',
+    '#title' => t('Uberdust Rest'),
+	'#required' =>TRUE,
+	'#default_value' => variable_get_value('pspace_rest'),
+); 
+
+$form['configure']['image_plan_url'] = array( 
+    '#type' => 'textfield',
+    '#title' => t('Plan'),
+//	'#description' => 'Priority will be given to uploaded file',
+	'#required' =>TRUE,
+	'#default_value' => variable_get_value('pspace_image'),
+
+);
+
+$form['configure']['node_prefix'] = array( 
+    '#type' => 'textfield',
+    '#title' => t('Node Prefix'),
+	'#default_value' => variable_get_value('pspace_node_prefix'),
+); 
+
+$form['configure']['cap_prefix'] = array( 
+    '#type' => 'textfield',
+    '#title' => t('Capability Prefix'),
+	'#default_value' => variable_get_value('pspace_capability_prefix'),
+); 
+
+$form['configure']['ws_host'] = array( 
+    '#type' => 'textfield',
+    '#title' => t('WebSocket Host'),
+	'#default_value' => variable_get_value('pspace_websocket_host'),
+); 
+
+$form['configure']['ws_prot'] = array( 
+    '#type' => 'textfield',
+    '#title' => t('WebSocket Protocol'),
+	'#default_value' => variable_get_value('pspace_websocket_protocol'),
+); 
+
+  
+$form['configure']['submit_button'] = array( 
+    '#type' => 'submit',	
+    '#value' => t('Submit'),
+);
+ 
+
+return $form;
+}
+
+function configure_form_validate($form_id, &$form_state)
+{
+
+if($form_state['values']['rest']==NULL)
+form_set_error('','You cannot leave Uberdust REST empty!');
+
+
+//if(($form_state['values']['image_plan_url']==NULL)&&($form_state['values']['image_plan_upload']==NULL))
+if($form_state['values']['image_plan_url']==NULL)
+	form_set_error('','Invalid Plan');
+
+	/*
+if 	($form_state['values']['image_plan_upload']!=NULL){
+	
+$file = file_save_upload('file', array(
+    'file_validate_is_image' => array(), // Validates file is really an image. 
+    'file_validate_extensions' => array('png jpg jpeg'), // Validate extensions.
+));
+ if ($file) {
+    // Move the file, into the Drupal file system
+    if ($file = file_move($file, 'public://')) {
+      // Save the file for use in the submit handler.
+      $form_state['storage']['file'] = $file;
+    }
+    else {
+      form_set_error('file', t('Failed to write the uploaded file the site\'s file folder.'));
+    }
+  }
+  else {
+    form_set_error('file', t('No file was uploaded.'));
+  }
+}	
+*/
+	
+
+}
+
+function configure_form_submit($form_id, &$form_state)
+{
+//drupal_set_message("<pre>".print_r($form_state['values'],TRUE)."</pre>");
+
+variable_set_value('pspace_rest',$form_state['values']['rest']);
+variable_set_value('pspace_image',$form_state['values']['image_plan_url']);
+
+variable_set_value('pspace_node_prefix',$form_state['values']['node_prefix']);
+variable_set_value('pspace_capability_prefix',$form_state['values']['cap_prefix']);
+
+
+variable_set_value('pspace_websocket_host',$form_state['values']['ws_host']);
+variable_set_value('pspace_websocket_protocol',$form_state['values']['ws_prot']);
+
+}

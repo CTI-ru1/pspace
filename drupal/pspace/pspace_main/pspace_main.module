@@ -1,0 +1,157 @@
+<?php
+
+//-------------------------------------------
+//-------------- P-Space HOOKS --------------
+//-------------------------------------------
+
+function pspace_main_menu()
+{
+$stoixeia=array();
+
+$stoixeia['homepage']=array(
+	'title'=> t('P-Space Overview Page'),
+	'page callback' => 'uberdust_overview',
+	'access callback'=>TRUE,
+);
+
+return $stoixeia;
+}
+
+function pspace_main_init()
+{
+ drupal_add_js(drupal_get_path('module', 'pspace_main') . '/pspace_main.js');
+
+}
+
+
+//-------------------------------------------
+//-------------- P-Space PAGES --------------
+//-------------------------------------------
+
+
+function uberdust_overview()
+{
+$rarray=array();
+
+$testbed = variable_get_value('pspace_rest');
+
+
+$node_pref = variable_get_value('pspace_node_prefix');
+// $cap_pref = variable_get_value('pspace_capability_prefix');
+// $ws_host = variable_get_value('pspace_websocket_host');
+// $ws_prot = variable_get_value('pspace_websocket_protocol');
+
+
+ 
+//new
+$json=file_get_contents("$testbed/status/json");
+$status=json_decode($json);
+//drupal_set_message("<pre>".print_r($status,TRUE)."</pre>");
+
+$nodes="";
+
+$i=0;
+foreach ($status as $key=>$value) {
+	//drupal_set_message("$key<pre>".print_r($value,TRUE)."</pre>");
+		
+	$j=0;	
+	foreach ($value as $node_readings){
+		$node[$node_readings->capability]= isset($node_readings->reading)? $node_readings->reading : $node_readings->stringReading ;
+		$stats[$j] = array($node_readings->capability, isset($node_readings->reading)? $node_readings->reading : $node_readings->stringReading );
+		$j++;
+	}	
+	
+	$cleankey=str_replace($node_pref,"",$key);
+
+	
+	//node
+	$row[$i][0]=l($cleankey,"status",array('query'=>array('node'=>"$cleankey")));
+
+	//room
+	$row[$i][1]= isset($node['room'])? $node['room'] : 'unknown';
+	
+	//x
+	$row[$i][2]= isset($node['x'])? $node['x'] : '-';
+	
+	//y
+	$row[$i][3]= isset($node['y'])? $node['y'] : '-';
+	
+	//z
+	$row[$i][4]= isset($node['z'])? $node['z'] : '-';
+
+	//nodetype
+	$row[$i][5]= isset($node['nodetype'])? $node['nodetype'] : 'unknown';
+	
+	//status
+	$row[$i][6]= theme ('image', array(
+		'path' => 'sites/all/themes/info.png',
+		'alt' => 'status',
+		'width' => '24px',
+		'height' => '24px',
+		'attributes' => array(
+			'class' => "statusimage",
+			'id' => "$cleankey" ,
+			),
+		) );
+	
+
+	$showdivs[$i] = array(
+	'#theme' => 'table',
+	'#header'=> array('Capability','Latest Reading'),
+	'#rows' => $stats,
+	'#prefix' => "<div class=\"$cleankey\" style=\"display:none\" >",
+	'#suffix' => '</div>',
+	);
+	
+	
+	if ((isset($node['x'])) && (isset($node['y']))){
+		$x=explode(".",$node['x']);
+		$y=explode(".",$node['y']);
+		$nodes.="<area shape=\"circle\" coords=\"".$x[0].",".$y[0].",5\" class=\"statusimage\" id=\"$cleankey\" alt=\"$cleankey\"/>";
+//		$nodes.="<area onclick=\"alert(1);\" shape=\"circle\" coords=\"".$x[0].",".$y[0].",5\" class=\"statusimage\" id=\"$cleankey\" alt=\"$cleankey\"/>";
+	}
+	
+$i++;
+}
+
+$rarray['pspace'] = array(
+	'#theme' => 'image',
+	'#path' =>  variable_get_value('pspace_image'),
+	'#prefix' => "<div class=\"mapper\" >",
+	'#title' => "P-Space Image",
+	'#alt' => "P-Space Image",
+	'#attributes' => array('usemap'=>'#nodemap'),
+
+);
+
+
+$header="<map name=\"nodemap\">";
+$footer="</map>";
+//$nodes=
+
+
+ $rarray['map']= array(
+  '#markup' => $header.$nodes.$footer, 
+  	'#suffix' => '</div><br>',
+  );
+
+   
+$rarray['nodes'] = array(
+'#theme' => 'table',
+'#header'=> array('Node','room','x','y','z','nodetype','status'),
+'#rows' =>$row,
+'#prefix' => '<p>',
+'#suffix' => '</p>',
+);
+
+
+$rarray['divs'] = $showdivs;
+
+return $rarray;
+}
+
+/*
+//$json_result=file_get_contents("http://carrot.cti.gr:8080/uberdust/rest/testbed/2/node/".$form_state['values']['select_node']."/capability/".$form_state['values']['select_cap']."/latestreading");
+//$result=explode('	',$json_result);
+//drupal_set_message("Last Reading: ".$result[1]);
+*/
