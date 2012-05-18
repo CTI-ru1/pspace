@@ -1,0 +1,70 @@
+<?php
+
+//-------------------------------------------
+//-------------- P-Space HOOKS --------------
+//-------------------------------------------
+
+function pspace_last_entries_block_info()
+{
+$blocks['last_entries']=array(
+'info'=>t('Last Entries'),
+);
+
+return $blocks;
+}
+
+
+
+function pspace_last_entries_block_view($delta = '')
+{
+	$block=array();
+
+	$testbed = variable_get_value('pspace_rest');
+	$node_pref = variable_get_value('pspace_node_prefix');
+	$cap_pref = variable_get_value('pspace_capability_prefix');
+	$door_disp = variable_get_value('pspace_door_timeout_display');
+
+	$threshold= time() - ($door_disp * 60 * 60);
+
+	$header="<h2>Last Entries</h2>\n";
+	$last="";
+
+	$json=file_get_contents("$testbed/node/".$node_pref."door/capability/".$cap_pref."card/json/limit/10");
+	$last_json=get_object_vars(json_decode($json));
+
+	//$last.="<br><br>".date( 'D, d M Y H:i:s')."<br><br>";
+
+	foreach ($last_json['readings'] as $reading){
+
+	$read=get_object_vars($reading);
+	//drupal_set_message("<pre>".print_r($read,TRUE)."</pre>");
+
+	if ($read['timestamp']/1000 > $threshold){
+
+		$day_name="";
+		$date = date('d/m/Y', $read['timestamp']/1000);
+   		if($date == date('d/m/Y'))
+     			$day_name = 'Today';
+   		else if($date == date('d/m/Y',time() - (24 * 60 * 60))) 
+      			$day_name = 'Yesterday';
+    		else
+			$day_name = date('D', $read['timestamp']/1000);
+
+
+		$last.= $day_name.", ".date('H:i',$read['timestamp']/1000)." - ".$read['stringReading']."<br>";
+
+	}
+
+	}
+
+	$block['content']=array(
+		'#markup'=>$header.$last,
+	);
+
+return $block;
+}
+
+
+//-------------------------------------------
+//-------------- P-Space PAGES --------------
+//-------------------------------------------
