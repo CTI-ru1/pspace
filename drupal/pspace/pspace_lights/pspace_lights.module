@@ -9,9 +9,11 @@ function pspace_lights_menu()
 $stoixeia=array();
 
 $stoixeia['lights']=array(
-	'title'=> t('P-Space Lights Page'),
+	'title'=> t('Lights'),
 	'page callback' => 'lights_overview',
 	'access callback'=>TRUE,
+	'menu_name'=> 'main-menu',
+	'weight'=> 2,
 );
 
 return $stoixeia;
@@ -30,14 +32,6 @@ function pspace_lights_permission() {
   return $perm_array;
 }
 
-/*
-function pspace_lights_init() {
-  
- drupal_add_js(drupal_get_path('module', 'pspace_lights') . '/websocket.js');
-
-}*/
-
-
 //-------------------------------------------
 //-------------- P-Space PAGES --------------
 //-------------------------------------------
@@ -46,8 +40,6 @@ function pspace_lights_init() {
 function lights_overview()
 {
 $rarray=array();
-
-
 
 $testbed = variable_get_value('pspace_rest');
 
@@ -205,7 +197,7 @@ $item.= "<img src=\"sites/all/themes/newswitch0.png\" onclick = \"activate(0,4)\
   }
 
 
-$ws="<script type=\"text/javascript\" src=\"sites/all/modules/pspace/pspace_lights/websocket.js\"></script>";
+$ws="<script type=\"text/javascript\" src=\"sites/all/modules/pspace/websocket.js\"></script>";
 
 
 $script3=" connect(\"192.168.1.5:8080/uberdust\",\"urn:pspace:0x2eb\",\"urn:node:capability:lamp1\");";

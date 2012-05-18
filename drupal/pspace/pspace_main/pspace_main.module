@@ -9,9 +9,12 @@ function pspace_main_menu()
 $stoixeia=array();
 
 $stoixeia['homepage']=array(
-	'title'=> t('P-Space Overview Page'),
+	//'title'=> t('P-Space Overview Page'),
 	'page callback' => 'uberdust_overview',
 	'access callback'=>TRUE,
+	'menu_name'=> 'main-menu',
+	'weight'=> 0 ,
+	'type' => MENU_CALLBACK,
 );
 
 return $stoixeia;
@@ -29,101 +32,87 @@ $rarray=array();
 
 $testbed = variable_get_value('pspace_rest');
 
-
 $node_pref = variable_get_value('pspace_node_prefix');
 $cap_pref = variable_get_value('pspace_capability_prefix');
-// $ws_host = variable_get_value('pspace_websocket_host');
-// $ws_prot = variable_get_value('pspace_websocket_protocol');
 
+$var_non = variable_get_value('pspace_non_reading'); 
+$non_reads=explode(',',$var_non);
 
- 
 //new
 $json=file_get_contents("$testbed/status/json");
 $status=json_decode($json);
-//drupal_set_message("<pre>".print_r($status,TRUE)."</pre>");
 
+
+//svg parts
 $nodes="";
+$boxes="";
 
 $i=0;
 foreach ($status as $key=>$value) {
-	//drupal_set_message("$key<pre>".print_r($value,TRUE)."</pre>");
 		
 	$j=0;	
 	foreach ($value as $node_readings){
 		$capability=str_replace($cap_pref,"",$node_readings->capability);
 		
 		$node[$capability]= isset($node_readings->reading)? $node_readings->reading : $node_readings->stringReading ;
-		$stats[$j] = array($capability, isset($node_readings->reading)? $node_readings->reading : $node_readings->stringReading );
-		$j++;
-	}	
 
+	}	
 	
 	$cleankey=str_replace($node_pref,"",$key);
 
-	
-	//node
-	$row[$i][0]=l($cleankey,"status",array('query'=>array('node'=>"$cleankey")));
-
-	//room
-	//$row[$i][1]= isset($node['room'])? $node['room'] : 'unknown';
-	
-	//x
-	$row[$i][2]= isset($node['x'])? $node['x'] : '-';
-	
-	//y
-	$row[$i][3]= isset($node['y'])? $node['y'] : '-';
-	
-	//z
-	$row[$i][4]= isset($node['z'])? $node['z'] : '-';
-
-	//nodetype
-	//$row[$i][5]= isset($node['nodetype'])? $node['nodetype'] : 'unknown';
-	
-	//status
-	/*
-	$row[$i][6]= theme ('image', array(
-		'path' => '/sites/all/themes/info.png',
-		'alt' => 'status',
-		'width' => '24px',
-		'height' => '24px',
-		'attributes' => array(
-			'class' => "statusimage",
-			'id' => "$cleankey" ,
-			),
-		) );
-	*/	
-
-	$showdivs[$i] = array(
-	'#theme' => 'table',
-	'#header'=> array('Capability','Latest Reading'),
-	'#rows' => $stats,
-	'#prefix' => "<div class=\"$cleankey\" style=\"display:none\" >",
-	'#suffix' => '</div>',
-	);
-	
-
+//svg dots + mouseover
 	
 	if ((isset($node['x'])) && (isset($node['y']))){
 		$x=explode(".",$node['x']);
 		$y=explode(".",$node['y']);
 
-//old
-/*
-$nodes.="<circle cx=\"".$x[0]."\" cy=\"".$y[0]."\" r=\"5\" fill=\"blue\" id='$cleankey' onclick=\"nstatus(this.id)\" >\n
-<title>$cleankey</title>\n
-</circle>\n";
-*/
+		//link (blue dot)
+		$nodes.="<a xlink:href=\"status?node=$cleankey\">\n
+		<circle cx=\"".$x[0]."\" cy=\"".$y[0]."\" r=\"5\" fill=\"blue\" id='$cleankey' onmouseover=\"document.getElementById('$cleankey-status').style.opacity=1;\" onmouseout=\"document.getElementById('$cleankey-status').style.opacity=0;\" >\n
+		<title>$cleankey</title>\n
+		</circle></a>\n";
 
-//link
-$nodes.="<a xlink:href=\"status?node=$cleankey\">\n<circle cx=\"".$x[0]."\" cy=\"".$y[0]."\" r=\"5\" fill=\"blue\" id='$cleankey' >\n
-<title>$cleankey</title>\n
-</circle></a>\n";
+		//status (hidden)
+
+		$height=15;
+		$lines="";
+		foreach ($node as $key => $value){
+			if (! in_array($key,$non_reads)){
+				$height+=15;
+				$lines.="<tspan x=\"".($x[0]+5)."\" dy=\"15\">$key : $value</tspan>\n";
+			}
+		}
+		$boxes.="<g id=\"$cleankey-status\" opacity=\"0\"><rect x=\"".$x[0]."\" y=\"".$y[0]."\" height=\"$height\" width=\"100\" fill=\"#ffffff\"  stroke=\"#000000\">\n
+		</rect>\n";
+
+		$boxes.="<text y=\"".($y[0]+3)."\" height=\"$height\" width=\"100\" fill=\"#000000\">\n";
+		$boxes.=$lines;
+		$boxes.="</text>\n</g>\n";
+	}
+	else if(substr($cleankey,0,8)=="virtual:"){
+
+		$virtual_nodes[$cleankey]=array(
+			'title' => $cleankey,
+			'href' => "status",
+			'attributes' => array('style'=>"color:#0071B3;background-color:transparent"),
+			'query'=>array('node'=>"$cleankey")
+		);	
+
+	}
+	else{
+
+		$other_nodes[$cleankey]=array(
+			'title' => $cleankey,
+			'href' => "status",
+			'attributes' => array('style'=>"color:#0071B3;background-color:transparent"),
+			'query'=>array('node'=>"$cleankey")
+		);	
+
 	}
 
 unset($node);
 $i++;
 }
-
 
 
 // svg
@@ -141,7 +130,7 @@ $g2="</g>\n";
 $svg_foot="</svg>\n";
 
 
-$markup= $svg_head.$meta.$g.$image.$nodes.$g2.$svg_foot;
+$markup= $svg_head.$meta.$g.$image.$boxes.$nodes.$g2.$svg_foot;
 
  $rarray['svg']= array(
   '#markup' => $markup, 
@@ -149,44 +138,26 @@ $markup= $svg_head.$meta.$g.$image.$nodes.$g2.$svg_foot;
   '#suffix' => "</div>",
   );
 
-
 //-----end svg
-   
-$rarray['nodes'] = array(
-'#theme' => 'table',
-'#header'=> array('Node','x','y','z'),
-'#rows' =>$row,
+			
+
+$rarray['other_nodes'] = array(
+'#theme' => 'links',
+'#heading' => array('text' => 'Other Nodes','level' => 'h3'),
+'#links' => $other_nodes,
 '#prefix' => '<p>',
 '#suffix' => '</p>',
 );
 
 
-$rarray['divs'] = $showdivs;
-
-
-
-
-//onclick show status?
-
-$script="";
-$header="<script type=\"text/javascript\">\n";
-$script.="function nstatus(image_id){
-		jQuery(\".\" + image_id).hide().slideDown(800); }";
-$footer="\n</script>";
-
- $rarray['script_image']= array(
-  '#markup' => $header.$script.$footer, 
-  );
-
-	
-
+$rarray['virtual_nodes'] = array(
+'#theme' => 'links',
+'#heading' => array('text' => 'Virtual Nodes','level' => 'h3'),
+'#links' => $virtual_nodes,
+'#prefix' => '<p>',
+'#suffix' => '</p>',
+);
 
 
 return $rarray;
 }
-
-/*
-//$json_result=file_get_contents("http://carrot.cti.gr:8080/uberdust/rest/testbed/2/node/".$form_state['values']['select_node']."/capability/".$form_state['values']['select_cap']."/latestreading");
-//$result=explode('	',$json_result);
-//drupal_set_message("Last Reading: ".$result[1]);
-*/
