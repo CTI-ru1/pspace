@@ -67,7 +67,12 @@ function pspace_variable_info() {
 //    'description' => t(''),
     'type' => 'string',
   );  
-  
+
+  $variable['pspace_door_timeout_display'] = array(
+    'title' => t('Door timeout Display'),
+//    'description' => t(''),
+    'type' => 'string',
+  );  
   
   return $variable;
 }  
@@ -100,6 +105,7 @@ $rarray['link']= array(
  $var_host = variable_get_value('pspace_websocket_host');
  $var_prot = variable_get_value('pspace_websocket_protocol');
  
+ $door_disp = variable_get_value('pspace_door_timeout_display');
  
  
  $header='<h2>Current Settings</h2><br>';
@@ -109,6 +115,7 @@ $rarray['link']= array(
  $config.='<strong>Capability Prefix</strong>: \''.$var_cap."'<br>";
  $config.='<strong>WebSocket Host</strong>: \''.$var_host."'<br>";
  $config.='<strong>WebSocket Protocol</strong>: \''.$var_prot."'<br>";
+ $config.='<strong>Door timeout Display (Hours)</strong>: '.$door_disp."<br>";
  
  
  
@@ -182,6 +189,13 @@ $form['configure']['ws_prot'] = array(
 	'#default_value' => variable_get_value('pspace_websocket_protocol'),
 ); 
 
+
+$form['configure']['threshold'] = array( 
+    '#type' => 'textfield',
+    '#title' => t('Door timeout Display'),
+	'#default_value' => variable_get_value('pspace_door_timeout_display'),
+); 
+
   
 $form['configure']['submit_button'] = array( 
     '#type' => 'submit',	
@@ -248,5 +262,8 @@ variable_set_value('pspace_capability_prefix',$form_state['values']['cap_prefix'
 
 variable_set_value('pspace_websocket_host',$form_state['values']['ws_host']);
 variable_set_value('pspace_websocket_protocol',$form_state['values']['ws_prot']);
+
+
+variable_set_value('pspace_door_timeout_display',$form_state['values']['threshold']);
 
 }
