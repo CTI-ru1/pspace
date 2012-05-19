@@ -159,7 +159,7 @@ $markup= $svg_head.$meta.$g.$image.$shapes.$g2.$svg_foot;
 
 $script="";
 $header="<script type=\"text/javascript\">";
-if ($haslight)
+if ($haslight==1)
 	$script.="document.getElementById(\"$test_room\").style.opacity=0;";  //lights on
 	//$script="document.getElementById(\"$test_room\").style.opacity=0.688;"; //lights off
 $footer="</script>";
@@ -176,7 +176,7 @@ $script="" ;
 
 $script.="var state=new Array();\n" ;     
   
-if ($haslight)	$script.="state[1]=1;\n";
+if ($haslight==1)	$script.="state[1]=1;\n";
 else $script.="state[1]=0;\n";
 
 $script.="	function activate(node,room){\n";
@@ -229,7 +229,7 @@ $rarray['script_light']= array(
 
 $item="";
 
-if ($haslight) $item .=  "<img src=\"sites/all/themes/newswitch1.png\" onclick = \"activate('$node',1)\" title=\"ROOM1\" id= \"myswitch1\" alt=\"switch\" height=\"100\" width=\"100\"/>\n"; 
+if ($haslight==1) $item .=  "<img src=\"sites/all/themes/newswitch1.png\" onclick = \"activate('$node',1)\" title=\"ROOM1\" id= \"myswitch1\" alt=\"switch\" height=\"100\" width=\"100\"/>\n"; 
 else $item .=  "<img src=\"sites/all/themes/newswitch0.png\" onclick = \"activate('$node',1)\" title=\"ROOM1\" id= \"myswitch1\" alt=\"switch\" height=\"100\" width=\"100\"/>\n"; 
 
 $item.= "<img src=\"sites/all/themes/newswitch0.png\" onclick = \"activate(0,2)\" title=\"ROOM2\" id= \"myswitch2\" alt=\"switch\" height=\"100\" width=\"100\"/>\n"; 
