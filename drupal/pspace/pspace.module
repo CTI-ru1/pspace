@@ -35,6 +35,7 @@ function pspace_permission() {
 function pspace_variable_info() {
   
 
+//uber
 
   $variable['pspace_rest'] = array(
     'title' => t('Uberdust Rest'),
@@ -56,6 +57,12 @@ function pspace_variable_info() {
     'type' => 'string',
   );
 
+  $variable['pspace_virtual_routing_xml'] = array(
+    'title' => t('Virtual Routing XML'),
+    'type' => 'string',
+  );  
+
+//websocket
 
   $variable['pspace_websocket'] = array(
     'title' => t('Websockets'),
@@ -67,11 +74,14 @@ function pspace_variable_info() {
     'type' => 'string',
   );
 
+/*
   $variable['pspace_websocket_protocol'] = array(
     'title' => t('Websocket Protocol'),
     'type' => 'string',
   );  
+*/
 
+//other
 
   $variable['pspace_image'] = array(
     'title' => t('Pspace Plan'),
@@ -82,8 +92,12 @@ function pspace_variable_info() {
     'title' => t('Door timeout Display'),
     'type' => 'string',
   );  
-  
 
+  $variable['pspace_rooms_xml'] = array(
+    'title' => t('Rooms XML'),
+    'type' => 'string',
+  );
+  
   return $variable;
 }  
 
@@ -122,21 +136,21 @@ return $rarray;
 
 function configure_form($form_state)
 {
-
-
 // get_values
  
  $var_rest = variable_get_value('pspace_rest');
  $var_node = variable_get_value('pspace_node_prefix');
  $var_cap = variable_get_value('pspace_capability_prefix');
- $var_non = variable_get_value('pspace_non_reading'); 
+ $var_non = variable_get_value('pspace_non_reading');
+ $route = variable_get_value('pspace_virtual_routing_xml'); 
 
  $websocket = variable_get_value('pspace_websocket');
  $var_host = variable_get_value('pspace_websocket_host');
- $var_prot = variable_get_value('pspace_websocket_protocol');
+// $var_prot = variable_get_value('pspace_websocket_protocol');
  
  $var_plan = variable_get_value('pspace_image');
  $door_disp = variable_get_value('pspace_door_timeout_display');
+ $rooms = variable_get_value('pspace_rooms_xml');
 
 
 //--------- Uberdust Settings ------------//
@@ -148,6 +162,7 @@ function configure_form($form_state)
  $uber.='<strong>Node Prefix</strong>: \' '.$var_node." '<br>";
  $uber.='<strong>Capability Prefix</strong>: \' '.$var_cap." '<br>"; 
  $uber.='<strong>Non-Reading Capabilities</strong>: \' '.$var_non." '<br>";
+ $uber.='<strong>Virtual Nodes\' Routing XML</strong>: '.l($route,$route)."<br>";
 
 
  $form['uber_curr']= array(
@@ -192,6 +207,13 @@ $form['uber']['non_reading'] = array(
 	'#description' => 'seperated by comma(,)',
 ); 
 
+$form['uber']['route'] = array( 
+    '#type' => 'textfield',
+    '#required' =>TRUE,
+    '#title' => t('Virtual Nodes\' Routing XML'),
+	'#default_value' => $route,
+); 
+
 //--------- Websocket Settings ------------//
 
  //curr
@@ -200,7 +222,7 @@ $form['uber']['non_reading'] = array(
  $websocks.="<h3>Websockets</h3>";
  $websocks.='<strong>Websockets</strong>: '.$websocket."<br>";
  $websocks.='<strong>WebSocket Host</strong>: \' '.$var_host." '<br>";
- $websocks.='<strong>WebSocket Protocol</strong>: \' '.$var_prot." '<br>";
+// $websocks.='<strong>WebSocket Protocol</strong>: \' '.$var_prot." '<br>";
 
  $form['websock_curr']= array(
   '#markup' => $websocks,	  
@@ -220,7 +242,8 @@ $form['uber']['non_reading'] = array(
 $form['websock']['websocket'] = array( 
     '#type' => 'radios',
     '#title' => t('WebSockets'),
-    '#options' => array('On' => t('On'), 'Off' => t('Off')),
+    '#options' => array('On-Dyn' => t('On-Dyn'),'On' => t('On'), 'Off' => t('Off')),
+    '#description' => 'Set Javascript WebSockets Off, On (read host from variable) or On-Dyn (auto-set \'domain:8080/uberdust\' as host)',
     '#default_value' => $websocket,
 ); 
 
@@ -231,12 +254,13 @@ $form['websock']['ws_host'] = array(
 	'#default_value' => $var_host,
 ); 
 
+/*
 $form['websock']['ws_prot'] = array( 
     '#type' => 'textfield',
     '#title' => t('WebSocket Protocol'),
 	'#default_value' => $var_prot,
 ); 
-
+*/
 
 
 //--------- Other Settings ------------//
@@ -246,6 +270,8 @@ $form['websock']['ws_prot'] = array(
  $other.="<h3>Other</h3>";
  $other.='<strong>P-Space Plan</strong>: '.l($var_plan,$var_plan)."<br>";
  $other.='<strong>Door timeout Display (Hours)</strong>: '.$door_disp."<br>";
+ $other.='<strong>Rooms\' XML</strong>: '.l($rooms,$rooms)."<br>";
+
 
  $form['other_curr']= array(
   '#markup' => $other,	  
@@ -276,6 +302,11 @@ $form['other']['threshold'] = array(
 	'#default_value' => $door_disp,
 ); 
 
+$form['other']['rooms_xml'] = array( 
+    '#type' => 'textfield',
+    '#title' => t('Rooms\' XML'),
+	'#default_value' => $rooms,
+); 
 
 //--------- Submit ------------//
 
@@ -297,11 +328,22 @@ return $form;
 function configure_form_validate($form_id, &$form_state)
 {
 
-
+//--uberdust--//
 if($form_state['values']['rest']==NULL)
 form_set_error('','You cannot leave Uberdust REST empty!');
 
+if($form_state['values']['route']==NULL)
+form_set_error('','Routing XML is required');
 
+
+//--websocket--//
+if(($form_state['values']['websocket']!='On')&&($form_state['values']['websocket']!='Off')&&($form_state['values']['websocket']!='On-Dyn'))
+	form_set_error('','Websockets must be set On,Off or On-Dyn');
+
+if(($form_state['values']['websocket']!='On')&&($form_state['values']['ws_host']==NULL))
+	form_set_error('','You can\'t leave WebSocket Host empty when websockets is On');
+
+//--other--//
 if($form_state['values']['image_plan_url']==NULL)
 	form_set_error('','Invalid Plan');
 else{
@@ -310,9 +352,8 @@ else{
 		form_set_error('','Image mustn\'t have more than 720px width');
 }
 
-if(($form_state['values']['websocket']!='On')&&($form_state['values']['websocket']!='Off'))
-	form_set_error('','Websockets must be set On or Off');
-
+if ($form_state['values']['rooms_xml'] ==NULL)
+	form_set_error('','Rooms XML is required');
 
 $form_state['values']['threshold']=intval($form_state['values']['threshold']);
 
@@ -321,8 +362,6 @@ if ($form_state['values']['threshold'] == 0)
 
 }
 
-
-
 function configure_form_submit($form_id, &$form_state)
 {
 
@@ -330,12 +369,14 @@ variable_set_value('pspace_rest',$form_state['values']['rest']);
 variable_set_value('pspace_node_prefix',$form_state['values']['node_prefix']);
 variable_set_value('pspace_capability_prefix',$form_state['values']['cap_prefix']);
 variable_set_value('pspace_non_reading',$form_state['values']['non_reading']);
+variable_set_value('pspace_virtual_routing_xml',$form_state['values']['route']);
 
 variable_set_value('pspace_websocket',$form_state['values']['websocket']);
 variable_set_value('pspace_websocket_host',$form_state['values']['ws_host']);
-variable_set_value('pspace_websocket_protocol',$form_state['values']['ws_prot']);
+//variable_set_value('pspace_websocket_protocol',$form_state['values']['ws_prot']);
 
 variable_set_value('pspace_image',$form_state['values']['image_plan_url']);
+variable_set_value('pspace_rooms_xml',$form_state['values']['rooms_xml']);
 variable_set_value('pspace_door_timeout_display',$form_state['values']['threshold']);
 
 }

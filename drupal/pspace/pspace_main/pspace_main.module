@@ -74,7 +74,7 @@ foreach ($status as $key=>$value) {
 
 		//status (hidden)
 
-		$height=15;
+		$height=30;
 		$lines="";
 		foreach ($node as $key => $value){
 			if (! in_array($key,$non_reads)){
@@ -86,8 +86,10 @@ foreach ($status as $key=>$value) {
 		</rect>\n";
 
 		$boxes.="<text y=\"".($y[0]+3)."\" height=\"$height\" width=\"100\" fill=\"#000000\">\n";
+		$boxes.="<tspan x=\"".($x[0]+5)."\" dy=\"15\" text-decoration = \"underline\">$cleankey</tspan>\n";
 		$boxes.=$lines;
 		$boxes.="</text>\n</g>\n";
+
 	}
 	else if(substr($cleankey,0,8)=="virtual:"){
 

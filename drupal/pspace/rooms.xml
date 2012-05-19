@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<pspace>
+    <room>
+        <name>ROOM1</name>
+	<x>45.093945</x>
+	<y>189.45094</y>
+	<height>131.524</height>
+	<width>261.54489</width>	
+    </room>
+
+    <room>
+        <name>ROOM2</name>
+	<x>48.851772</x>
+	<y>16.590815</y>
+	<height>124.00835</height>
+	<width>257.78705</width>	
+    </room>
+
+    <room>
+        <name>ROOM3</name>
+	<x>316.40918</x>
+	<y>16.590815</y>
+	<height>125.51148</height>
+	<width>161.58664</width>	
+    </room>
+
+    <room>
+        <name>ROOM4</name>
+	<x>312.65137</x>
+	<y>189.45094</y>
+	<height>131.524</height>
+	<width>254.78079</width>	
+    </room>
+</pspace>
+
