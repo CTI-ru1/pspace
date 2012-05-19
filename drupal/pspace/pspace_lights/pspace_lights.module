@@ -83,7 +83,7 @@ foreach($status[$node] as $values){
 }
 
 
-drupal_set_message("<pre>".print_r($status[$lampnode],TRUE)."</pre>");
+//drupal_set_message("<pre>".print_r($status[$lampnode],TRUE)."</pre>");
 
 foreach($status[$lampnode] as $values){
 	$temp=get_object_vars($values);
@@ -93,8 +93,8 @@ foreach($status[$lampnode] as $values){
 		$haslight_lamp2=$temp['reading'];
 }
 
-drupal_set_message($haslight_lamp1);
-drupal_set_message($haslight_lamp2);
+//drupal_set_message($haslight_lamp1);
+//drupal_set_message($haslight_lamp2);
 
 
 //load rooms
