@@ -42,10 +42,13 @@ $non_reads=explode(',',$var_non);
 $json=file_get_contents("$testbed/status/json");
 $status=json_decode($json);
 
-
 //svg parts
 $nodes="";
 $boxes="";
+
+//array init
+$other_nodes=array();
+$virtual_nodes=array();
 
 $i=0;
 foreach ($status as $key=>$value) {
@@ -62,19 +65,28 @@ foreach ($status as $key=>$value) {
 
 //svg dots + mouseover
 	
-	if ((isset($node['x'])) && (isset($node['y']))){
+	if(substr($cleankey,0,8)=="virtual:"){
+
+		$virtual_nodes[$cleankey]=array(
+			'title' => $cleankey,
+			'href' => "status",
+			'attributes' => array('style'=>"color:#0071B3;background-color:transparent"),
+			'query'=>array('node'=>"$cleankey")
+		);	
+
+	}
+	else if ((isset($node['x'])) && (isset($node['y']))){
 		$x=explode(".",$node['x']);
 		$y=explode(".",$node['y']);
 
 		//link (blue dot)
 		$nodes.="<a xlink:href=\"status?node=$cleankey\">\n
 		<circle cx=\"".$x[0]."\" cy=\"".$y[0]."\" r=\"5\" fill=\"blue\" id='$cleankey' onmouseover=\"document.getElementById('$cleankey-status').style.opacity=1;\" onmouseout=\"document.getElementById('$cleankey-status').style.opacity=0;\" >\n
-		<title>$cleankey</title>\n
 		</circle></a>\n";
 
 		//status (hidden)
 
-		$height=15;
+		$height=30;
 		$lines="";
 		foreach ($node as $key => $value){
 			if (! in_array($key,$non_reads)){
@@ -86,17 +98,9 @@ foreach ($status as $key=>$value) {
 		</rect>\n";
 
 		$boxes.="<text y=\"".($y[0]+3)."\" height=\"$height\" width=\"100\" fill=\"#000000\">\n";
+		$boxes.="<tspan x=\"".($x[0]+5)."\" dy=\"15\" text-decoration = \"underline\">$cleankey</tspan>\n";
 		$boxes.=$lines;
 		$boxes.="</text>\n</g>\n";
-	}
-	else if(substr($cleankey,0,8)=="virtual:"){
-
-		$virtual_nodes[$cleankey]=array(
-			'title' => $cleankey,
-			'href' => "status",
-			'attributes' => array('style'=>"color:#0071B3;background-color:transparent"),
-			'query'=>array('node'=>"$cleankey")
-		);	
 
 	}
 	else{

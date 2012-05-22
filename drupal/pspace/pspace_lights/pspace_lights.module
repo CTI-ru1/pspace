@@ -19,13 +19,11 @@ $stoixeia['lights']=array(
 return $stoixeia;
 }
 
-
 function pspace_lights_permission() {
   
   $perm_array= array(
     'open/close_lights' => array(
       'title' => t('Open/Close lights'), 
-	  //'restrict access' => TRUE
     ),
   );
 	
@@ -45,31 +43,60 @@ $testbed = variable_get_value('pspace_rest');
 
 $node_pref = variable_get_value('pspace_node_prefix');
 $cap_pref = variable_get_value('pspace_capability_prefix');
+$route = variable_get_value('pspace_virtual_routing_xml');
 
+$websocket = variable_get_value('pspace_websocket');
+$ws_host = variable_get_value('pspace_websocket_host');
 
-//hardcoded: node / capability / room
+$plan=variable_get_value('pspace_image');
+
+//------hardcoded: node / capability / room
+drupal_set_message('Warning: page changed! The first switch open the light');
+drupal_set_message('Websockets on lamps are not yet implemented');
+
 $node= $node_pref."0x2eb";
 $capability= $cap_pref . "lamp1";
 $vcapability= $cap_pref . "light1";
 
-$room = "room_3";   
-//test
-//$virtual=$node_pref.'virtual:0.I.9';
+$test_room = "ROOM1";   
+
 //general
 //$virtual=$node_pref.'virtual:'.$room;
 //pspace
 $virtual=$node_pref.'virtual:ROOM1';
 
+$lampnode= $node_pref."0x473";
+
+//-------end hardcoded
+
+$json=file_get_contents("$testbed/status/json");
+$status=get_object_vars(json_decode($json));
+
+//--need to be extended--//
+foreach($status[$node] as $values){
+	$temp=get_object_vars($values);
+	if ($temp['capability']==$capability)
+		$haslight=$temp['reading'];
+}
 
 
+//drupal_set_message("<pre>".print_r($status[$lampnode],TRUE)."</pre>");
+
+foreach($status[$lampnode] as $values){
+	$temp=get_object_vars($values);
+	if ($temp['capability']==$cap_pref . "lamp1")
+		$haslight_lamp1=$temp['reading'];
+	else if ($temp['capability']==$cap_pref . "lamp2")
+		$haslight_lamp2=$temp['reading'];
+}
+
+//drupal_set_message($haslight_lamp1);
+//drupal_set_message($haslight_lamp2);
 
 // svg
-$image_size=getimagesize(variable_get_value('pspace_image'));
+$image_size=getimagesize($plan);
 //width: $image_size[0]
 //height: $image_size[1]
-
-
-//drupal_set_message(print_r($image_size,TRUE));
 
 $shapes="";
 
@@ -77,26 +104,49 @@ $svg_head="<?xml version=\"1.0\"?>\n<svg width=\"".$image_size[0]."\" height=\""
 $meta="<metadata id=\"metadata3045\">image/svg+xml</metadata>\n";
 $g="<g>\n<title>P-Space</title>\n";
 
-$image="<image y=\"0\" x=\"0\" id=\"pspace\" xlink:href=\"".variable_get_value('pspace_image')."\"width=\"".$image_size[0]."\" height=\"".$image_size[1]."\" />\n";
+$image="<image y=\"0\" x=\"0\" id=\"pspace\" xlink:href=\"".$plan."\"width=\"".$image_size[0]."\" height=\"".$image_size[1]."\" />\n";
 
 $g2="</g>\n";
 $svg_foot="</svg>\n";
 
-//rooms
-$shapes='
-  <rect style="opacity: 0.688;" y="16.590815" x="316.40918" height="125.51148" width="161.58664" id="room_2">
-   <title>room 2</title>
-  </rect>';
-$shapes.='  <rect style="opacity: 0.688;" y="16.590815" x="48.851772" height="124.00835" width="257.78705" id="room_1">
-   <title>room 1</title>
-  </rect>';
-$shapes.='  <rect style="opacity: 0.688;" y="189.45094" x="45.093945" height="131.524" width="261.54489" id="room_3">
-   <title>room 3</title>
-  </rect>';
-$shapes.='  <rect style="opacity: 0.688;" y="189.45094" x="312.65137" height="131.524" width="254.78079" id="room_4" >
-   <title>room 4</title>
-  </rect>';
 
+//rooms
+
+$shapes.="";
+
+foreach ($status as $key=>$values){
+
+	$cleankey=str_replace($node_pref,"",$key);
+
+	if(substr($cleankey,0,8)=="virtual:"){
+
+		foreach($values as $v_capabilities){
+			$temp=get_object_vars($v_capabilities);	
+			$vcap[str_replace($cap_pref,"",$temp['capability'])]=$temp['reading'];
+		}
+
+		$shapes.='
+		  <rect style="opacity: 0.688;" x="'.$vcap['x'].'" y="'.$vcap['y'].'" height="'.$vcap['height'].'" width="'.$vcap['width'].'" id="'.str_replace('virtual:',"",$cleankey).'">
+		   <title>'.str_replace('virtual:',"",$cleankey).'</title>
+		  </rect>';
+		unset($vcap);
+	}
+
+}
+
+if ($haslight_lamp1==1) $fill1='green';
+else $fill1='red';
+
+$shapes.='<circle cx="141" cy="248" r="8" fill="'.$fill1.'" id="lamp1" stroke="#000000" stroke-width="2" onclick="lamp_click(1);" opacity="0.7">
+		<title>lamp1</title>
+		</circle>';
+
+if ($haslight_lamp2==1) $fill2='green';
+else $fill2='red';
+
+$shapes.='<circle cx="221" cy="248" r="8" fill="'.$fill2.'" id="lamp2" stroke="#000000"  stroke-width="2" onclick="lamp_click(2);" opacity="0.7">
+		<title>lamp2</title>
+		</circle>';
 
 $markup= $svg_head.$meta.$g.$image.$shapes.$g2.$svg_foot;
 
@@ -106,21 +156,15 @@ $markup= $svg_head.$meta.$g.$image.$shapes.$g2.$svg_foot;
   '#suffix' => "</div>",
   );
 
-
 //-----end svg
 
 
- 
-$json=file_get_contents("$testbed/node/".$node."/capability/".$capability."/latestreading/json");
-$light=get_object_vars(json_decode($json));
- 
-$haslight= $light['readings'][0]->reading;
- 
+
 $script="";
 $header="<script type=\"text/javascript\">";
-if ($haslight)
-	$script.="document.getElementById(\"$room\").style.opacity=0;";  //lights on
-	//$script="document.getElementById(\"$room\").style.opacity=0.688;"; //lights off
+if ($haslight==1)
+	$script.="document.getElementById(\"$test_room\").style.opacity=0;";  //lights on
+	//$script="document.getElementById(\"$test_room\").style.opacity=0.688;"; //lights off
 $footer="</script>";
 
  $rarray['script_image']= array(
@@ -131,65 +175,69 @@ $footer="</script>";
   
 if (user_access("open/close_lights")){
 
+$script="" ;
 
- $script="var state=new Array();" ;
-    
+$script.="var state=new Array();\n" ;     
   
-if ($haslight)	$script.="state[3]=1;";
-else $script.="state[3]=0;";
+if ($haslight==1)	$script.="state[1]=1;\n";
+else $script.="state[1]=0;\n";
 
-$script.="	function activate(node,room){";
+$script.="	function activate(node,room){\n";
 
 
-//room 3: send command and w8 for socket to change state in webpage
-$script.="var timestamp = new Date().valueOf();";
+//room 1: send command and w8 for socket to change state in webpage
+$script.="var timestamp = new Date().valueOf();\n";
 //$script.="alert('$testbed/node/$virtual/capability/$capability/insert/timestamp/'+timestamp+'/reading/0/');";
 
-$script.="if (room==3){  xmlhttp=new XMLHttpRequest();";
-$script.="if (state[3]==0) xmlhttp.open(\"GET\",'$testbed/node/$virtual/capability/$vcapability/insert/timestamp/'+timestamp+'/reading/1/');";
-$script.="else xmlhttp.open(\"GET\",'$testbed/node/$virtual/capability/$vcapability/insert/timestamp/'+timestamp+'/reading/0/');";
-$script.="xmlhttp.send();xmlhttp.send();";
-$script.="}";
+$script.="if (room==1){\n  xmlhttp=new XMLHttpRequest();\n";
+$script.="if (state[1]==0)\n   xmlhttp.open(\"GET\",'$testbed/node/$virtual/capability/$vcapability/insert/timestamp/'+timestamp+'/reading/1/');\n";
+$script.="else\n   xmlhttp.open(\"GET\",'$testbed/node/$virtual/capability/$vcapability/insert/timestamp/'+timestamp+'/reading/0/');\n";
+$script.="xmlhttp.send();xmlhttp.send();\n";
+$script.="}\n";
 
 
 //for other rooms play dummy graphics
-$script.="else{";
-$script.="if (state[room]==1){state[room]=0; document.getElementById('myswitch'+room).src=\"sites/all/themes/newswitch0.png\";document.getElementById('room_'+room).style.opacity=0.688;}";
-$script.="else{	state[room]=1; document.getElementById('myswitch'+room).src=\"sites/all/themes/newswitch1.png\"; document.getElementById('room_'+room).style.opacity=0;	}";
-$script.="}";
+$script.="else{\n";
+$script.="if (state[room]==1){\nstate[room]=0;\n document.getElementById('myswitch'+room).src=\"sites/all/themes/newswitch0.png\";\ndocument.getElementById('ROOM'+room).style.opacity=0.688;\n}\n";
+$script.="else{\n	state[room]=1;\n document.getElementById('myswitch'+room).src=\"sites/all/themes/newswitch1.png\";\n document.getElementById('ROOM'+room).style.opacity=0;\n	}\n";
+$script.="}\n";
+
+$script.="}\n";
 
 
-$script.="}";
+$script.="var lamp=new Array();\n" ; 
+$script.="function lamp_click(number){\n";
+//$script.="alert(number);\n";
+$script.="xmlhttp=new XMLHttpRequest();\n";
+$script.="var timestamp = new Date().valueOf();\n";
 
+$script.="if (lamp[number]==1){\nlamp[number]=0;\ndocument.getElementById('lamp'+number).style.fill='red';\n";
+$script.="xmlhttp.open(\"GET\",'$testbed/node/$virtual/capability/".$cap_pref."lamp'+number+'/insert/timestamp/'+timestamp+'/reading/0/');\n";
+//$script.="alert('$testbed/node/$virtual/capability/".$cap_pref."lamp'+number+'/insert/timestamp/'+timestamp+'/reading/0/');\n";
+$script.="}\n";
 
+$script.="else{\nlamp[number]=1;\n document.getElementById('lamp'+number).style.fill='green';\n";
+$script.="xmlhttp.open(\"GET\",'$testbed/node/$virtual/capability/".$cap_pref."lamp'+number+'/insert/timestamp/'+timestamp+'/reading/1/');\n";
+//$script.="alert('$testbed/node/$virtual/capability/".$cap_pref."lamp'+number+'/insert/timestamp/'+timestamp+'/reading/1/');\n";
+$script.="}\n";
+
+$script.="xmlhttp.send();xmlhttp.send();\n";
+$script.="}\n";
 	  
 $rarray['script_light']= array(
   '#markup' => $header.$script.$footer, 
   );
 
 
-$script2="function onwsmessage(livestring){";
 
+$item="";
 
-$script2.="var command=livestring.split(\" \");";
-$script2.="if (command[8]==\"0.0\"){state[3]=0; document.getElementById('myswitch3').src=\"sites/all/themes/newswitch0.png\";document.getElementById('room_3').style.opacity=0.688;}";
-$script2.="else{state[3]=1; document.getElementById('myswitch3').src=\"sites/all/themes/newswitch1.png\"; document.getElementById('room_3').style.opacity=0;	}";
+if ($haslight==1) $item .=  "<img src=\"sites/all/themes/newswitch1.png\" onclick = \"activate('$node',1)\" title=\"ROOM1\" id= \"myswitch1\" alt=\"switch\" height=\"100\" width=\"100\"/>\n"; 
+else $item .=  "<img src=\"sites/all/themes/newswitch0.png\" onclick = \"activate('$node',1)\" title=\"ROOM1\" id= \"myswitch1\" alt=\"switch\" height=\"100\" width=\"100\"/>\n"; 
 
-$script2.="}";
-
-$rarray['script_websock_light']= array(
-  '#markup' => $header.$script2.$footer, 
-  );
-
-
-  
-$item= "<img src=\"sites/all/themes/newswitch0.png\" onclick = \"activate(0,1)\" title=\"room 1\" id= \"myswitch1\" alt=\"switch\" height=\"100\" width=\"100\"/>"; 
-$item.= "<img src=\"sites/all/themes/newswitch0.png\" onclick = \"activate(0,2)\" title=\"room 2\"id= \"myswitch2\" alt=\"switch\" height=\"100\" width=\"100\"/>"; 
-  
-if ($haslight) $item .=  "<img src=\"sites/all/themes/newswitch1.png\" onclick = \"activate('$node',3)\" title=\"room 3\" id= \"myswitch3\" alt=\"switch\" height=\"100\" width=\"100\"/>"; 
-else $item .=  "<img src=\"sites/all/themes/newswitch0.png\" onclick = \"activate('$node',3)\" title=\"room 3\" id= \"myswitch3\" alt=\"switch\" height=\"100\" width=\"100\"/>"; 
-
-$item.= "<img src=\"sites/all/themes/newswitch0.png\" onclick = \"activate(0,4)\" title=\"room 4\" id= \"myswitch4\" alt=\"switch\" height=\"100\" width=\"100\"/>"; 
+$item.= "<img src=\"sites/all/themes/newswitch0.png\" onclick = \"activate(0,2)\" title=\"ROOM2\" id= \"myswitch2\" alt=\"switch\" height=\"100\" width=\"100\"/>\n"; 
+$item.= "<img src=\"sites/all/themes/newswitch0.png\" onclick = \"activate(0,3)\" title=\"ROOM3\"id= \"myswitch3\" alt=\"switch\" height=\"100\" width=\"100\"/>\n";   
+$item.= "<img src=\"sites/all/themes/newswitch0.png\" onclick = \"activate(0,4)\" title=\"ROOM4\" id= \"myswitch4\" alt=\"switch\" height=\"100\" width=\"100\"/>\n"; 
 
   $rarray['switch_images'] = array(
    		    '#markup' =>  $item,
@@ -197,12 +245,33 @@ $item.= "<img src=\"sites/all/themes/newswitch0.png\" onclick = \"activate(0,4)\
   }
 
 
-$ws="<script type=\"text/javascript\" src=\"sites/all/modules/pspace/websocket.js\"></script>";
+/*if ($websocket =='Off') 
+else if ($websocket =='On')
+else if ($websocket =='On-Dyn')
+*/
+
+$script2="function onwsmessage(livestring){\n";
+
+$script2.="var command=livestring.split(\" \");\n";
+$script2.="if (command[8]==\"0.0\"){\nstate[1]=0;\n document.getElementById('myswitch1').src=\"sites/all/themes/newswitch0.png\";\ndocument.getElementById('$test_room').style.opacity=0.688;\n}\n";
+$script2.="else{\nstate[1]=1;\n document.getElementById('myswitch1').src=\"sites/all/themes/newswitch1.png\";\n document.getElementById('$test_room').style.opacity=0;\n	}\n";
+
+$script2.="}";
+
+$rarray['script_websock_light']= array(
+  '#markup' => $header.$script2.$footer, 
+  );
+
+$ws="<script type=\"text/javascript\" src=\"sites/all/modules/pspace/websocket.js\"></script>\n";
 
 
-$script3=" connect(\"192.168.1.5:8080/uberdust\",\"urn:pspace:0x2eb\",\"urn:node:capability:lamp1\");";
+if ($websocket =='Off') {}
+else if ($websocket =='On')
+	$script3=" connect(\"$ws_host\",\"urn:pspace:0x2eb\",\"urn:node:capability:lamp1\");\n";
+else if ($websocket =='On-Dyn')
+	$script3=" connect(document.domain+':8080/uberdust',\"urn:pspace:0x2eb\",\"urn:node:capability:lamp1\");\n";
+
 //$script3=" connect(\"pspace.dyndns.org:8080/uberdust\",\"urn:pspace:0x2eb\",\"urn:node:capability:lamp1\");";
-
 
 
 $rarray['script_connect']= array(

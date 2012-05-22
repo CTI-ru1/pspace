@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<routings>
+    <route>
+        <source>ROOM1</source>
+	<capability>lamp1</capability>
+        <destination>
+		<node>0x473</node>
+		<capability>lamp1</capability>
+	</destination>
+    </route>
+    <route>
+        <source>ROOM1</source>
+	<capability>urn:node:capability:lamp2</capability>
+        <destination>
+		<node>0x473</node>
+		<capability>lamp2</capability>
+	</destination>
+    </route>
+    <route>
+        <source>ROOM1</source>
+	<capability>urn:node:capability:light1</capability>
+        <destination>
+		<node>0x2eb</node>
+		<capability>lamp1</capability>
+	</destination>
+    </route>
+</routings>

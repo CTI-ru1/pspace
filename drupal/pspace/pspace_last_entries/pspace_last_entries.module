@@ -29,7 +29,7 @@ function pspace_last_entries_block_view($delta = '')
 	$header="<h2>Last Entries</h2>\n";
 	$last="";
 
-	$json=file_get_contents("$testbed/node/".$node_pref."door/capability/".$cap_pref."card/json/limit/10");
+	$json=file_get_contents("$testbed/node/".$node_pref."door/capability/".$cap_pref."card/json/limit/25");
 	$last_json=get_object_vars(json_decode($json));
 
 	//$last.="<br><br>".date( 'D, d M Y H:i:s')."<br><br>";

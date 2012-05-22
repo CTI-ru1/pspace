@@ -47,7 +47,6 @@ function connect(hostname,node,capability){ //se full morfi ta nodes/capabilityi
 
         else {
             socket = new MozWebSocket(host,encodedProtocol);
-
                // message('You have a browser that supports MozWebSockets');
         }
     }
@@ -74,24 +73,17 @@ function connect(hostname,node,capability){ //se full morfi ta nodes/capabilityi
 //            message('Socket Status: '+socket.readyState+' (Closed)'+"");
         }
 
+	var t=setTimeout("ping()",30000);
+
     } catch(exception){
          //   message('Error'+exception+"");
     }
 
-
-
 }
 
-	function ping(socket){
-		
-  		try{
-        	socket.send("ping");
-        		
-		} catch(exception){
+function ping()
+{
+        socket.send("ping");
+	var t=setTimeout("ping()",30000);
+}
 
-    		}
-		
-		setTimeout("ping()",30000);
-	}
-
-//setTimeout

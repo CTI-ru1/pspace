@@ -38,11 +38,12 @@ $status=get_object_vars(json_decode($json));
 $node_pref = variable_get_value('pspace_node_prefix');
 $cap_pref = variable_get_value('pspace_capability_prefix');
 
-if(isset($_GET['node'])) {
 
-	if(isset($status[$node_pref.$_GET['node']])){
+if((isset($_GET['node']))&&(isset($status[$node_pref.$_GET['node']]))){
+
 	$node_name=$_GET['node'];
 	$i=0;
+
 	foreach ($status[$node_pref.$node_name] as $node_readings){
 		$capability=str_replace($cap_pref,"",$node_readings->capability);
 		$node[$i]= array($capability, isset($node_readings->reading)? $node_readings->reading : $node_readings->stringReading );
@@ -59,19 +60,18 @@ if(isset($_GET['node'])) {
 		'#rows' =>$node,
 	);
 
-	//dummy -- haven't decided yet
+		//dummy -- haven't decided yet
 	if(substr($node_name,0,8)=="virtual:")
 		drupal_set_message("This is a Virtual Node! (Haven't decided how to handle yet)");
 
-
-	}
-	else{	//node doesn't exist
-		$rarray['node_name'] =  array(
-			'#markup' => "<p><h1>Invalid Node</h1></p><br>",
-		);
-	}
 }
-else{ //GET['node'] is not set
+else{
+
+	if(isset($_GET['node'])) 
+		drupal_set_message('Invalid Node','error');
+
+	$all_nodes=array();
+	$virtual_nodes=array();
 
 	foreach ($status as $key=>$value) {
 		$cleankey=str_replace($node_pref,"",$key);
