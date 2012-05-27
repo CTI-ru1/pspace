@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest package="eu.uberdust.mobileclient"
+    android:versionCode="1"
+    android:versionName="1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-sdk android:minSdkVersion="4" 
+              android:targetSdkVersion="8" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
+    <application
+        android:theme="@style/Theme.D1"
+      	android:label="@string/app_name"
+        android:icon="@drawable/ic_launcher"
+        android:name=".model.GlobalData">
+        <activity
+            android:name=".HomeActivity"
+            android:label="@string/app_name" android:launchMode="singleTop" android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        
+        <activity android:name=".RoomActivity"
+            android:theme="@style/Theme.D1"
+            android:label="@string/title_rooms"
+            android:screenOrientation="portrait"/>
+      <activity android:name=".CapabilitiesActivity"
+            android:theme="@style/Theme.D1"
+            android:label="@string/browse"
+            android:screenOrientation="portrait"/>
+      <activity android:name=".UsersActivity"
+            android:theme="@style/Theme.D1"
+            android:label="@string/title_feature5"
+            android:screenOrientation="portrait"/>
+      <activity android:name=".PreferencesActivity"
+            android:theme="@style/Theme.D1"
+            android:label="@string/title_preferences"
+            android:screenOrientation="portrait"/>
+      <activity android:name=".ServerPreferencesActivity"
+            android:theme="@style/Theme.D1"
+            android:label="@string/title_preferences"
+            android:screenOrientation="portrait"/>
+      <activity android:name=".AboutActivity"
+            android:theme="@style/Theme.D1"
+            android:label="@string/title_about"
+            android:launchMode="singleTop" android:screenOrientation="portrait"/>
+      <activity android:name=".SearchActivity"
+            android:theme="@style/Theme.D1"
+            android:label="@string/title_search"
+            android:launchMode="singleTop" android:screenOrientation="portrait"/>
+      <activity android:name=".FirstTimeActivity"
+            android:theme="@style/Theme.D1"
+            android:label="@string/title_wizard"
+            android:launchMode="singleTop" android:screenOrientation="portrait"/>
+      <activity android:name=".ReadingsHistoryActivity" 
+          	android:theme="@style/Theme.D1" 
+          	android:label="@string/graph" android:screenOrientation="portrait">
+      </activity>
+      <activity android:name=".CommandRoomActivity" android:theme="@style/Theme.D1" android:label="@string/command" android:screenOrientation="portrait"></activity>
+      <activity android:name=".CommandCapabilitiesActivity" android:theme="@style/Theme.D1" android:label="@string/command" android:screenOrientation="portrait"></activity>
+      
+        
+    </application>
+
+</manifest>
