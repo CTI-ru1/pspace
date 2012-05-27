@@ -30,6 +30,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.TextView;
 import eu.uberdust.mobileclient.model.GlobalData;
 import eu.uberdust.mobileclient.model.NodeTree;
 import eu.uberdust.mobileclient.model.RoomTree;
@@ -57,11 +58,14 @@ public class SearchActivity extends DashboardActivity
 	int virtual=0;
 
 	List<HashMap<String, Object>> fillMaps;
+	List<HashMap<String, Object>> fillMapsVirtual;
 	
 	int i,j,k;
 	
 	String[] from = new String[] {"Room", "Node"};
 	int[] to = new int[] {R.id.room, R.id.node };
+	
+	SeparatedListAdapter adapter;
 	
 protected void onCreate(Bundle savedInstanceState) 
 {
@@ -71,6 +75,7 @@ protected void onCreate(Bundle savedInstanceState)
  
     
 	fillMaps = new ArrayList<HashMap<String, Object>>();
+	fillMapsVirtual = new ArrayList<HashMap<String, Object>>();
     
     search = (EditText) findViewById(R.id.search);
 	search.addTextChangedListener(new TextWatcher(){
@@ -84,26 +89,30 @@ protected void onCreate(Bundle savedInstanceState)
     
     
 	lv= (ListView)findViewById(R.id.list);
-    lv.setOnItemClickListener(new OnItemClickListener() {
+	
+	lv.setOnItemClickListener(new OnItemClickListener() {
         public void onItemClick(AdapterView<?> parent, View view,
             int position, long id) {
         	
-        	((GlobalData) getApplicationContext()).setCurrentRoom((RoomTree)fillMaps.get(position).get("Object"));
-        	if(real>0){
-        		if(position<real)
-        			changetoRoom();
-        		else
-        			changetoVirturalRoom();
+        	String  nodename = ((TextView)view.findViewById(R.id.node)).getText().toString();
+        	
+        	if( nodename.contains("virtual") ){
+        		((GlobalData) getApplicationContext()).setCurrentRoom((RoomTree)fillMapsVirtual.get(position-real-2).get("ObjectRoom"));
+        		changetoVirturalRoom();
         	}
         	else{
-        		changetoVirturalRoom();
+        		((GlobalData) getApplicationContext()).setCurrentRoom((RoomTree)fillMaps.get(position-1).get("ObjectRoom"));
+        		changetoRoom();
+        		
         	}
         }
     });
+    
     }
 
 public void itemSearch(String in){	
 	fillMaps.clear();
+	fillMapsVirtual.clear();
 	gdata = (GlobalData) getApplicationContext();
 	
 	
@@ -111,14 +120,21 @@ public void itemSearch(String in){
 	testbedVirtual =gdata.getCurrentVirtualTestbed();
 	
 	
-	real = search (currentTestbed, in);
-	virtual = search (testbedVirtual, in);
-    
-	SimpleAdapter adapter = new SimpleAdapter(SearchActivity.this, fillMaps, R.layout.row, from, to);
-    lv.setAdapter(adapter);
-    }
+	real = search (currentTestbed, in, fillMaps);
+	virtual = search (testbedVirtual, in, fillMapsVirtual);
+	
+	
+	adapter = new SeparatedListAdapter(this);
+	
+	adapter.addSection("Room Node Capability", new SimpleAdapter(SearchActivity.this, fillMaps, R.layout.row, from, to));
+	adapter.addSection("Commands", new SimpleAdapter(SearchActivity.this, fillMapsVirtual , R.layout.row, from, to));
+	lv.setAdapter(adapter);
+	
+}
 
-private int search(TestbedTree testbed, String in){
+
+
+private int search(TestbedTree testbed, String in, List<HashMap<String, Object>> MapSearch){
 	int num=0;
 	for(i=0;i<testbed.getRoomnum();i++){
 		room=testbed.getRoom(i);
@@ -126,8 +142,10 @@ private int search(TestbedTree testbed, String in){
 			HashMap<String, Object> map = new HashMap<String, Object>();
 			map.put("Room",room.getName());
 			map.put("Node","");
-			map.put("Object", room);
-			fillMaps.add(map);
+			map.put("ObjectRoom", room);
+			map.put("ObjectNode", node);
+			
+			MapSearch.add(map);
 			num++;
 		}
 		
@@ -138,8 +156,9 @@ private int search(TestbedTree testbed, String in){
 				HashMap<String, Object> map = new HashMap<String, Object>();
 				map.put("Room",room.getName());
 				map.put("Node", node.getName());
-				map.put("Object", room);
-				fillMaps.add(map);
+				map.put("ObjectRoom", room);
+				map.put("ObjectNode", node);
+				MapSearch.add(map);
 				num++;
 			}
 			
@@ -148,8 +167,9 @@ private int search(TestbedTree testbed, String in){
 					HashMap<String, Object> map = new HashMap<String, Object>();
 					map.put("Room",room.getName());
 					map.put("Node",node.getName());
-					map.put("Object",room);
-					fillMaps.add(map);
+					map.put("ObjectRoom", room);
+					map.put("ObjectNode", node);
+					MapSearch.add(map);
 					num++;
 				}
 			}
