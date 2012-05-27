@@ -50,7 +50,5 @@
     <string name="history">History</string>
     <string name="graph">Graph</string>
     <string name="command">Command</string>
-    <string name="keramidas-email">keramidasceid@gmail.com</string>
-    <string name="nikoloutsa-email"/>
-    <string name="prevezan-email"/>
+    <string name="code">Uberdust Mobile is an open source project!\nCode is located at github!</string>
 </resources>
