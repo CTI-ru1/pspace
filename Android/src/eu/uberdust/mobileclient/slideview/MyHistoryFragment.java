@@ -85,7 +85,7 @@ public final class MyHistoryFragment extends Fragment {
 		 	layout.addView(graphView);
 	    }
 	    if(mContent.equals("History")){
-	    	view = inflater.inflate(R.layout.slideview_list, container, false);
+	    	view = inflater.inflate(R.layout.slideview_history, container, false);
 	    	lv= (ListView) view.findViewById(R.id.list);
 		    SimpleAdapter adapter = new SimpleAdapter(getActivity().getApplicationContext(), fillMaps, R.layout.row, from, to);
 		    lv.setAdapter(adapter);
