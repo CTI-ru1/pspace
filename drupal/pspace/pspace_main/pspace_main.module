@@ -42,6 +42,7 @@ $non_reads=explode(',',$var_non);
 $json=file_get_contents("$testbed/status/json");
 $status=json_decode($json);
 
+
 //svg parts
 $nodes="";
 $boxes="";
@@ -62,6 +63,9 @@ foreach ($status as $key=>$value) {
 	}	
 	
 	$cleankey=str_replace($node_pref,"",$key);
+
+	if ($cleankey=='hifi')
+		$hifi= $node['track'];
 
 //svg dots + mouseover
 	
@@ -117,6 +121,16 @@ foreach ($status as $key=>$value) {
 unset($node);
 $i++;
 }
+
+
+$marquee="<marquee behavior=\"alternate\" scrollamount=\"10\">Now playing: $hifi</marquee>";
+
+ $rarray['hifi']= array(
+  '#markup' => $marquee, 
+  '#prefix' => "<p class=\"now_playing\">",
+  '#suffix' => "</p>",
+  );
+
 
 
 // svg

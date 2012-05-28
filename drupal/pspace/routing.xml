@@ -1,27 +1,62 @@
 <?xml version="1.0"?>
 <routings>
+
+<room>
+    <name>ROOM1</name>
     <route>
-        <source>ROOM1</source>
-	<capability>lamp1</capability>
+	<capability>ceilinglight1</capability>
+        <destination>
+		<node>0x2eb</node>
+		<capability>light1</capability>
+	</destination>
+    </route>
+    <route>
+	<capability>desklamp1</capability>
         <destination>
 		<node>0x473</node>
 		<capability>lamp1</capability>
 	</destination>
     </route>
     <route>
-        <source>ROOM1</source>
-	<capability>urn:node:capability:lamp2</capability>
+	<capability>desklamp2</capability>
         <destination>
 		<node>0x473</node>
 		<capability>lamp2</capability>
 	</destination>
     </route>
+</room>
+
+<room>
+    <name>ROOM2</name>
     <route>
-        <source>ROOM1</source>
-	<capability>urn:node:capability:light1</capability>
+	<capability>ceilinglight1</capability>
         <destination>
-		<node>0x2eb</node>
-		<capability>lamp1</capability>
+		<node>0x319</node>
+		<capability>light1</capability>
 	</destination>
     </route>
+</room>
+
+<room>
+    <name>ROOM3</name>
+    <route>
+	<capability>ceilinglight1</capability>
+        <destination>
+		<node>0x482</node>
+		<capability>light1</capability>
+	</destination>
+    </route>
+</room>
+
+<room>
+    <name>ROOM4</name>
+    <route>
+	<capability>ceilinglight1</capability>
+        <destination>
+		<node>0x328</node>
+		<capability>light1</capability>
+	</destination>
+    </route>
+</room>
+
 </routings>
