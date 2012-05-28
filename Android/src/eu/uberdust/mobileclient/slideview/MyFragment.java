@@ -54,12 +54,12 @@ public final class MyFragment extends Fragment {
 			view = inflater.inflate(R.layout.slideview_temperature, container, false);
 			mProgress = (ProgressBar) view.findViewById(R.id.vertical_progressbar);
 			try{
-			mProgress.setProgress((int)Double.parseDouble(value));
+			mProgress.setProgress((int)Double.parseDouble(value+20));
 			}catch (NumberFormatException e){
 				mProgress.setProgress(0);
 	    	}
 		}
-		else if (currentCapability.getAttribute().contains("light")){
+		else if (currentCapability.getAttribute().contains("light") || currentCapability.getAttribute().contains("lamp")){
 			view = inflater.inflate(R.layout.slideview_light, container, false);
 		}
 		else {
