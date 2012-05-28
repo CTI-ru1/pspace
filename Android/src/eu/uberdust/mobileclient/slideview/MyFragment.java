@@ -50,7 +50,7 @@ public final class MyFragment extends Fragment {
 		TextView text3;
 		ProgressBar mProgress;
 		
-		if(currentCapability.getAttribute().contains("temperature")){
+		if(currentCapability.getAttribute().contains("temperature") || currentCapability.getAttribute().contains("ac_temp") ){
 			view = inflater.inflate(R.layout.slideview_temperature, container, false);
 			mProgress = (ProgressBar) view.findViewById(R.id.vertical_progressbar);
 			try{

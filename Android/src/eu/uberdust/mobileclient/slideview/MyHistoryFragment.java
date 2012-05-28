@@ -35,7 +35,7 @@ public final class MyHistoryFragment extends Fragment {
 	List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
 
 	String[] from = new String[] {"Timestamp", "Value"};
-	int[] to = new int[] {R.id.room, R.id.node };
+	int[] to = new int[] {R.id.node, R.id.room };
 
 
 	public static MyHistoryFragment newInstance(String content) {
