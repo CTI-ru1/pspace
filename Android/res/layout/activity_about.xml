@@ -60,7 +60,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
                 android:layout_centerHorizontal="true"
-                android:text="Creators" />
+                android:text="Creators" android:textStyle="bold" android:textSize="11pt"/>
 
         </RelativeLayout>
 
@@ -149,10 +149,10 @@
         </LinearLayout>
 
     </LinearLayout>
-
+
     <RelativeLayout
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent" >
+        android:layout_height="100dp" >
 
         <TextView
             android:id="@+id/textView2"
