@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+	<PreferenceCategory 
+		android:title="Uberdust"
+        android:key="first_category">
+        <Preference android:title="Manage Servers"
+			android:key="managesevers"
+            android:summary="Manage and select an uberdust server"/>
+        <ListPreference
+  			android:title="Select Testbed"
+  			android:summary="Select a testbed from the current server"
+  			android:key="selecttestbed" />
+    </PreferenceCategory>
+    <PreferenceCategory 
+		android:title="Data cache"
+        android:key="second_category">
+        <Preference android:title="Clear cache"
+			android:key="clearcache"
+            android:summary="Clear the data cache"/>
+    </PreferenceCategory>
+	
+</PreferenceScreen>

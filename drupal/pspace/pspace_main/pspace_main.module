@@ -1,0 +1,181 @@
+<?php
+
+//-------------------------------------------
+//-------------- P-Space HOOKS --------------
+//-------------------------------------------
+
+function pspace_main_menu()
+{
+$stoixeia=array();
+
+$stoixeia['homepage']=array(
+	//'title'=> t('P-Space Overview Page'),
+	'page callback' => 'uberdust_overview',
+	'access callback'=>TRUE,
+	'menu_name'=> 'main-menu',
+	'weight'=> 0 ,
+	'type' => MENU_CALLBACK,
+);
+
+return $stoixeia;
+}
+
+
+//-------------------------------------------
+//-------------- P-Space PAGES --------------
+//-------------------------------------------
+
+
+function uberdust_overview()
+{
+$rarray=array();
+
+$testbed = variable_get_value('pspace_rest');
+
+$node_pref = variable_get_value('pspace_node_prefix');
+$cap_pref = variable_get_value('pspace_capability_prefix');
+
+$var_non = variable_get_value('pspace_non_reading'); 
+$non_reads=explode(',',$var_non);
+
+//new
+$json=file_get_contents("$testbed/status/json");
+$status=json_decode($json);
+
+
+//svg parts
+$nodes="";
+$boxes="";
+
+//array init
+$other_nodes=array();
+$virtual_nodes=array();
+
+$i=0;
+foreach ($status as $key=>$value) {
+		
+	$j=0;	
+	foreach ($value as $node_readings){
+		$capability=str_replace($cap_pref,"",$node_readings->capability);
+		
+		$node[$capability]= isset($node_readings->reading)? $node_readings->reading : $node_readings->stringReading ;
+
+	}	
+	
+	$cleankey=str_replace($node_pref,"",$key);
+
+	if ($cleankey=='hifi')
+		$hifi= $node['track'];
+
+//svg dots + mouseover
+	
+	if(substr($cleankey,0,8)=="virtual:"){
+
+		$virtual_nodes[$cleankey]=array(
+			'title' => $cleankey,
+			'href' => "status",
+			'attributes' => array('style'=>"color:#0071B3;background-color:transparent"),
+			'query'=>array('node'=>"$cleankey")
+		);	
+
+	}
+	else if ((isset($node['x'])) && (isset($node['y']))){
+		$x=explode(".",$node['x']);
+		$y=explode(".",$node['y']);
+
+		//link (blue dot)
+		$nodes.="<a xlink:href=\"status?node=$cleankey\">\n
+		<circle cx=\"".$x[0]."\" cy=\"".$y[0]."\" r=\"5\" fill=\"blue\" id='$cleankey' onmouseover=\"document.getElementById('$cleankey-status').style.opacity=1;\" onmouseout=\"document.getElementById('$cleankey-status').style.opacity=0;\" >\n
+		</circle></a>\n";
+
+		//status (hidden)
+
+		$height=30;
+		$lines="";
+		foreach ($node as $key => $value){
+			if (! in_array($key,$non_reads)){
+				$height+=15;
+				$lines.="<tspan x=\"".($x[0]+5)."\" dy=\"15\">$key : $value</tspan>\n";
+			}
+		}
+		$boxes.="<g id=\"$cleankey-status\" opacity=\"0\"><rect x=\"".$x[0]."\" y=\"".$y[0]."\" height=\"$height\" width=\"100\" fill=\"#ffffff\"  stroke=\"#000000\">\n
+		</rect>\n";
+
+		$boxes.="<text y=\"".($y[0]+3)."\" height=\"$height\" width=\"100\" fill=\"#000000\">\n";
+		$boxes.="<tspan x=\"".($x[0]+5)."\" dy=\"15\" text-decoration = \"underline\">$cleankey</tspan>\n";
+		$boxes.=$lines;
+		$boxes.="</text>\n</g>\n";
+
+	}
+	else{
+
+		$other_nodes[$cleankey]=array(
+			'title' => $cleankey,
+			'href' => "status",
+			'attributes' => array('style'=>"color:#0071B3;background-color:transparent"),
+			'query'=>array('node'=>"$cleankey")
+		);	
+
+	}
+
+unset($node);
+$i++;
+}
+
+
+$marquee="<marquee behavior=\"alternate\" scrollamount=\"10\">Now playing: $hifi</marquee>";
+
+ $rarray['hifi']= array(
+  '#markup' => $marquee, 
+  '#prefix' => "<p class=\"now_playing\">",
+  '#suffix' => "</p>",
+  );
+
+
+
+// svg
+$image_size=getimagesize(variable_get_value('pspace_image'));
+//width: $image_size[0]
+//height: $image_size[1]
+
+$svg_head="<?xml version=\"1.0\"?>\n<svg width=\"".$image_size[0]."\" height=\"".$image_size[1]."\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n";
+$meta="<metadata id=\"metadata3045\">image/svg+xml</metadata>\n";
+$g="<g>\n<title>P-Space</title>\n";
+
+$image="<image y=\"0\" x=\"0\" id=\"pspace\" xlink:href=\"".variable_get_value('pspace_image')."\"width=\"".$image_size[0]."\" height=\"".$image_size[1]."\" />\n";
+
+$g2="</g>\n";
+$svg_foot="</svg>\n";
+
+
+$markup= $svg_head.$meta.$g.$image.$boxes.$nodes.$g2.$svg_foot;
+
+ $rarray['svg']= array(
+  '#markup' => $markup, 
+  '#prefix' => "<div class=\"svg\" >",
+  '#suffix' => "</div>",
+  );
+
+//-----end svg
+			
+
+$rarray['other_nodes'] = array(
+'#theme' => 'links',
+'#heading' => array('text' => 'Other Nodes','level' => 'h3'),
+'#links' => $other_nodes,
+'#prefix' => '<p>',
+'#suffix' => '</p>',
+);
+
+
+$rarray['virtual_nodes'] = array(
+'#theme' => 'links',
+'#heading' => array('text' => 'Virtual Nodes','level' => 'h3'),
+'#links' => $virtual_nodes,
+'#prefix' => '<p>',
+'#suffix' => '</p>',
+);
+
+
+return $rarray;
+}

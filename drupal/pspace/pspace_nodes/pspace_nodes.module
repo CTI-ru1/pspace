@@ -1,0 +1,117 @@
+<?php
+
+//-------------------------------------------
+//-------------- P-Space HOOKS --------------
+//-------------------------------------------
+
+function pspace_nodes_menu()
+{
+$stoixeia=array();
+
+$stoixeia['status']=array(
+	'title'=> t('Nodes'),
+	'page callback' => 'node_status',
+	'access callback'=>TRUE,
+	//'type'=>MENU_CALLBACK,
+	'menu_name' => 'main-menu',
+	'weight' => '7'
+	);
+
+return $stoixeia;
+}
+
+
+//-------------------------------------------
+//-------------- P-Space PAGES --------------
+//-------------------------------------------
+
+
+function node_status()
+{
+$rarray=array();
+
+$testbed = variable_get_value('pspace_rest');
+
+$json=file_get_contents("$testbed/status/json");
+$status=get_object_vars(json_decode($json));
+
+$node_pref = variable_get_value('pspace_node_prefix');
+$cap_pref = variable_get_value('pspace_capability_prefix');
+
+
+if((isset($_GET['node']))&&(isset($status[$node_pref.$_GET['node']]))){
+
+	$node_name=$_GET['node'];
+	$i=0;
+
+	foreach ($status[$node_pref.$node_name] as $node_readings){
+		$capability=str_replace($cap_pref,"",$node_readings->capability);
+		$node[$i]= array($capability, isset($node_readings->reading)? $node_readings->reading : $node_readings->stringReading );
+		$i++;
+	}	
+
+	$rarray['node_name'] =  array(
+		'#markup' => "<p><h1>$node_name</h1></p><br>",
+	);
+
+	$rarray['capabilities'] = array(
+		'#theme' => 'table',
+		'#header'=> array('Capability','Latest Reading'),
+		'#rows' =>$node,
+	);
+
+		//dummy -- haven't decided yet
+	if(substr($node_name,0,8)=="virtual:")
+		drupal_set_message("This is a Virtual Node! (Haven't decided how to handle yet)");
+
+}
+else{
+
+	if(isset($_GET['node'])) 
+		drupal_set_message('Invalid Node','error');
+
+	$all_nodes=array();
+	$virtual_nodes=array();
+
+	foreach ($status as $key=>$value) {
+		$cleankey=str_replace($node_pref,"",$key);
+
+		if(substr($cleankey,0,8)=="virtual:"){
+			$virtual_nodes[$cleankey]=array(
+				'title' => $cleankey,
+				'href' => "status",
+				'attributes' => array('style'=>"color:#0071B3;background-color:transparent"),
+				'query'=>array('node'=>"$cleankey")
+			);	
+		}
+		else{
+			$all_nodes[$cleankey]=array(
+				'title' => $cleankey,
+				'href' => "status",
+				'attributes' => array('style'=>"color:#0071B3;background-color:transparent"),
+				'query'=>array('node'=>"$cleankey")
+			);	
+		}
+	}
+
+	$rarray['all_nodes'] = array(
+		'#theme' => 'links',
+		'#heading' => array('text' => 'All Nodes','level' => 'h3'),
+		'#links' => $all_nodes,
+		'#prefix' => '<p>',
+		'#suffix' => '</p>',
+	);
+
+	$rarray['virtual_nodes'] = array(
+		'#theme' => 'links',
+		'#heading' => array('text' => 'Virtual Nodes','level' => 'h3'),
+		'#links' => $virtual_nodes,
+		'#prefix' => '<p>',
+		'#suffix' => '</p>',
+	);
+
+}
+
+return $rarray;
+
+}

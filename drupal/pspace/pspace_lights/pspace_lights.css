@@ -1,0 +1,22 @@
+
+#simple_table table{
+background: none;
+border: none;
+}
+
+#simple_table th {
+background: none;
+padding: 5px 4px;
+text-shadow: 1px 1px #fff;
+border-right: 1px solid #C8C7C7;
+text-align: center;
+}
+
+#simple_table td{
+background: none;
+color: none;
+text-align: center;
+padding-left: 4px;
+border-right: 1px solid #C8C7C7;
+border-bottom: none;
+}

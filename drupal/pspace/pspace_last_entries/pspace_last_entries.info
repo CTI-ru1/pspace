@@ -1,0 +1,9 @@
+name = P-Space Last Entries Block
+core = 7.x
+description = Last Entries Block
+package = Uberdust
+
+dependencies[] = variable
+dependencies[] = pspace
+
+version = "7.x-1.0"

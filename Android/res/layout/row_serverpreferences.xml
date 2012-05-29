@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+        <TextView android:id="@+id/servernameitem"
+        	android:layout_height="wrap_content"
+        	android:layout_width="fill_parent"
+        	android:textStyle="bold"
+        	android:textSize="10pt"
+        />
+        <TextView android:id="@+id/serverurlitem"
+	        android:layout_height="wrap_content"
+	        android:layout_width="fill_parent"
+	        android:textSize="6pt"
+	    />
+</LinearLayout>

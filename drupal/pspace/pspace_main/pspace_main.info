@@ -1,0 +1,11 @@
+name = P-Space Home Page
+core = 7.x
+description = Home Page
+package = Uberdust
+
+dependencies[] = variable
+dependencies[] = pspace
+dependencies[] = pspace_nodes
+
+
+version = "7.x-1.0"

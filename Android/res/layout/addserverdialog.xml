@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+ android:layout_width="wrap_content" android:layout_height="wrap_content">
+<TextView 
+    android:id="@+id/addserverdialog_namelabel"
+    android:text="@string/addserverdialog_name"
+    android:layout_width="fill_parent"
+    android:layout_height="20dp" />
+<EditText android:id="@+id/addserverdialog_name"
+    android:inputType="text"
+    android:layout_below="@id/addserverdialog_namelabel"
+    android:layout_width="fill_parent"
+    android:layout_height="40dp" />
+<TextView 
+    android:id="@+id/addserverdialog_urllabel"
+    android:layout_below="@id/addserverdialog_name"
+    android:text="@string/addserverdialog_url"
+    android:layout_width="fill_parent"
+    android:layout_height="20dp"/>
+<EditText android:id="@+id/addserverdialog_url"
+    android:inputType="textUri"
+    android:layout_below="@id/addserverdialog_urllabel"
+    android:layout_width="fill_parent"
+    android:layout_height="40dp" />
+<Button 
+    android:id="@+id/addserverdialog_okbutton"
+    android:text="@string/addserverdialog_ok"
+    android:layout_below="@id/addserverdialog_url"
+    android:layout_width="wrap_content"
+    android:layout_alignParentRight="true"
+    android:layout_height="40dp"  />
+<Button 
+    android:id="@+id/addserverdialog_cancelbutton"
+    android:text="@string/addserverdialog_cancel"
+    android:layout_below="@id/addserverdialog_url"
+    android:layout_toLeftOf="@id/addserverdialog_okbutton"
+    android:layout_width="wrap_content"
+    android:layout_height="40dp" />
+</RelativeLayout>
