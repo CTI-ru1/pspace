@@ -24,6 +24,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -80,7 +81,9 @@ protected void onCreate(Bundle savedInstanceState)
     search = (EditText) findViewById(R.id.search);
 	search.addTextChangedListener(new TextWatcher(){
         public void afterTextChanged(Editable s) {
+        	if(!s.toString().equals("")){
         		itemSearch(s.toString());
+        	}
 
         }
         public void beforeTextChanged(CharSequence s, int start, int count, int after){}
@@ -98,11 +101,12 @@ protected void onCreate(Bundle savedInstanceState)
         	
         	if( nodename.contains("virtual") ){
         		((GlobalData) getApplicationContext()).setCurrentRoom((RoomTree)fillMapsVirtual.get(position-real-2).get("ObjectRoom"));
-        		changetoVirturalRoom();
+        		changetoVirturalRoom((Integer)fillMapsVirtual.get(position-real-2).get("position"));
         	}
         	else{
         		((GlobalData) getApplicationContext()).setCurrentRoom((RoomTree)fillMaps.get(position-1).get("ObjectRoom"));
-        		changetoRoom();
+        		Log.d("position",Integer.toString((Integer)fillMaps.get(position-1).get("position")));
+        		changetoRoom((Integer)fillMaps.get(position-1).get("position"));
         		
         	}
         }
@@ -136,43 +140,53 @@ public void itemSearch(String in){
 
 private int search(TestbedTree testbed, String in, List<HashMap<String, Object>> MapSearch){
 	int num=0;
+	int position=0;
+	int capaposition=0;
 	for(i=0;i<testbed.getRoomnum();i++){
+		position=0;
+		capaposition=0;
 		room=testbed.getRoom(i);
-		if(room.getName().contains(in) && !in.equals("")){
+		if(room.getName().contains(in) ){
 			HashMap<String, Object> map = new HashMap<String, Object>();
 			map.put("Room",room.getName());
 			map.put("Node","");
 			map.put("ObjectRoom", room);
 			map.put("ObjectNode", node);
-			
+			map.put("position", 0);
 			MapSearch.add(map);
 			num++;
 		}
 		
 		for(j=0;j<room.getNodenum();j++){
 			node = room.getNode(j);
+			
 			//Pattern.compile(Pattern.quote(in), Pattern.CASE_INSENSITIVE).matcher(node.getName()).find();
-			if(node.getName().contains(in) && !in.equals("") && !room.getName().contains(in)){
+			if(node.getName().contains(in) && !room.getName().contains(in)){
 				HashMap<String, Object> map = new HashMap<String, Object>();
 				map.put("Room",room.getName());
 				map.put("Node", node.getName());
 				map.put("ObjectRoom", room);
 				map.put("ObjectNode", node);
+				map.put("position",  position);
 				MapSearch.add(map);
 				num++;
 			}
+			position+=node.getCapabilitiesNum();
 			
 			for(k=0;k<node.getCapabilitiesNum();k++){
-				if(node.getCapability(k).getAttribute().contains(in) && !in.equals("") && !node.getName().contains(in) && !room.getName().contains(in)){
+				if(node.getCapability(k).getAttribute().contains(in)&& !node.getName().contains(in) && !room.getName().contains(in)){
 					HashMap<String, Object> map = new HashMap<String, Object>();
 					map.put("Room",room.getName());
 					map.put("Node",node.getName());
 					map.put("ObjectRoom", room);
 					map.put("ObjectNode", node);
+					map.put("position", capaposition);
 					MapSearch.add(map);
 					num++;
 				}
+				capaposition++;
 			}
+			
 		}
 	}
 	
@@ -180,14 +194,15 @@ private int search(TestbedTree testbed, String in, List<HashMap<String, Object>>
 	
 }
 
-private void changetoRoom(){
+private void changetoRoom(Integer position){
 	Intent intent = new Intent(this, CapabilitiesActivity.class);
+	intent.putExtra("position", position);  
 	this.startActivity(intent);
 }
 
-private void changetoVirturalRoom(){
-	
+private void changetoVirturalRoom(Integer position){
 	Intent intent = new Intent(this, CommandCapabilitiesActivity.class);
+	intent.putExtra("position", position);
 	this.startActivity(intent);
 }
 	

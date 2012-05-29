@@ -64,6 +64,13 @@ public class CapabilitiesActivity extends FragmentActivity
 
 protected void onCreate(Bundle savedInstanceState) 
 {
+	
+	Integer position=0;
+	Bundle extras = getIntent().getExtras();
+	if(extras !=null) {
+		position = extras.getInt("position");
+	}
+	
     super.onCreate(savedInstanceState);
     setContentView (R.layout.activity_capabilities);
     setTitleFromActivityLabel (R.id.title_text);
@@ -77,8 +84,9 @@ protected void onCreate(Bundle savedInstanceState)
 	mPager = (ViewPager)findViewById(R.id.pager);
 	mPager.setAdapter(mAdapter);
 	
-	mIndicator = (TitlePageIndicator)findViewById(R.id.indicator);
-	mIndicator.setViewPager(mPager);
+	mIndicator = (TitlePageIndicator)findViewById(R.id.indicator);;
+	mIndicator.setViewPager(mPager,position);
+	mPager.setCurrentItem(position);
 
 }
    
