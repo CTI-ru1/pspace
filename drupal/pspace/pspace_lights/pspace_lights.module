@@ -59,6 +59,7 @@ $plan=variable_get_value('pspace_image');
 
 $main_light = "ceilinglight"; // ceilinglamp#: 1,2... if more than 1 divide opacity
 $lamp = "desklamp"; // desklamp#: 1,2...
+$maxlight=0.688;
 
 //get status
 $json=file_get_contents("$testbed/status/json");
@@ -74,6 +75,8 @@ $vars=get_object_vars($xml);
 //drupal_set_message("<pre>".print_r($vars['room'][0],TRUE)."</pre>");
 
 $shapes="";
+$ws_counter=0;
+
 foreach ($status as $key=>$values) {
 
 	$cleankey=str_replace($node_pref,"",$key);
@@ -116,11 +119,18 @@ foreach ($status as $key=>$values) {
 
 
 				if ($reading)
-					$main_switches.="<img src=\"sites/all/themes/newswitch1.png\" height=\"100\" id=\"$room"."_".$xml_data['route'][$i]->capability."\" onclick=\"switched_off(this.id)\" >\n";
+					$main_switches.="<img src=\"sites/all/themes/newswitch1.png\" height=\"100\" id=\"$room"."_".$xml_data['route'][$i]->capability."\" onclick=\"switch_off(this.id)\" >\n";
 				else
-					$main_switches.="<img src=\"sites/all/themes/newswitch0.png\" height=\"100\" id=\"$room"."_".$xml_data['route'][$i]->capability."\" onclick=\"switched_on(this.id)\" >\n";
+					$main_switches.="<img src=\"sites/all/themes/newswitch0.png\" height=\"100\" id=\"$room"."_".$xml_data['route'][$i]->capability."\" onclick=\"switch_on(this.id)\" >\n";
 
-//				$main_switches.="<img src=\"sites/all/themes/newswitch0.png\" onclick = \"activate(0,4)\" title=\"ROOM4\" id= \"myswitch4\" alt=\"switch\" height=\"100\" width=\"100\"/>\n";
+
+				//make array for websockets
+				if (($websocket=='On')||($websocket =='On-Dyn')){
+					$ws_counter++;
+					$ws_array[$ws_counter]['node']=$dest['node'];
+					$ws_array[$ws_counter]['capability']=$dest['capability'];
+				}
+
 
 			}
 			else if (substr($xml_data['route'][$i]->capability , 0 ,strlen($lamp)) == $lamp){
@@ -137,9 +147,16 @@ foreach ($status as $key=>$values) {
 				$map[$dest['node']][$dest['capability']."_capability"]=(string)$xml_data['route'][$i]->capability;
 
 				if ($reading)
-					$desk_switches.="<img src=\"sites/all/themes/on2.png\"  height=\"100\" id=\"$room"."_".$xml_data['route'][$i]->capability."\" onclick=\"switched_off(this.id)\" >\n";
+					$desk_switches.="<img src=\"sites/all/themes/on2.png\"  height=\"100\" id=\"$room"."_".$xml_data['route'][$i]->capability."\" onclick=\"switch_off(this.id)\" >\n";
 				else
-					$desk_switches.="<img src=\"sites/all/themes/off2.png\" height=\"100\" id=\"$room"."_".$xml_data['route'][$i]->capability."\" onclick=\"switched_on(this.id)\" >\n";
+					$desk_switches.="<img src=\"sites/all/themes/off2.png\" height=\"100\" id=\"$room"."_".$xml_data['route'][$i]->capability."\" onclick=\"switch_on(this.id)\" >\n";
+
+				//make array for websockets
+				if (($websocket=='On')||($websocket =='On-Dyn')){
+					$ws_counter++;
+					$ws_array[$ws_counter]['node']=$dest['node'];
+					$ws_array[$ws_counter]['capability']=$dest['capability'];
+				}
 
 			}
 		}
@@ -150,7 +167,6 @@ foreach ($status as $key=>$values) {
 
 //making rectangles
 		if ($lights){
-			$maxlight=0.688;
 			$perlight=$maxlight/$lights;
 			//drupal_set_message($perlight);
 			$current=0;
@@ -160,19 +176,16 @@ foreach ($status as $key=>$values) {
 			//drupal_set_message($current);
 
 			if ( isset($vcap['x']) && isset($vcap['y']) && isset($vcap['height']) && isset($vcap['width']) ){
-				$shapes.='<rect x="'.$vcap['x'].'" y="'.$vcap['y'].'" height="'.$vcap['height'].'" width="'.$vcap['width'].'" id="'.str_replace('virtual:',"",$cleankey).'" style="opacity: '.($maxlight-$current)."\" >\n<title>".str_replace('virtual:',"",$cleankey)."</title>\n</rect>\n";
+				$shapes.='<rect x="'.$vcap['x'].'" y="'.$vcap['y'].'" height="'.$vcap['height'].'" width="'.$vcap['width'].'" id="'.str_replace('virtual:',"",$cleankey).'" opacity=" '.($maxlight-$current)."\" >\n<title>".str_replace('virtual:',"",$cleankey)."</title>\n</rect>\n";
 			}
 
 		}
-
-		//TODO $shapes.= v2 (room5, desk lamps_ )
 
 		if ($lights+$lamps){
 			$sw_header[$room]['data']=$room;
 			$switches[$room_id]['data']=$main_switches.$desk_switches;
 		}
 
-		//unset($json_obj);
 		unset($vcap);
 	}
 }
@@ -181,19 +194,10 @@ foreach ($status as $key=>$values) {
 //encode json objects
 $json_en=json_encode($json_obj);
 $map_en=json_encode($map);
-//drupal_set_message("<pre>".print_r($json_obj,TRUE)."</pre>");
-//drupal_set_message("<pre>".$json_en."</pre>");
-//drupal_set_message("<pre>".print_r($map,TRUE)."</pre>");
-//drupal_set_message("<pre>".$map_en."</pre>");
-
-//TODO write json_en/map_en in javascript objects.
-//jQuery.parseJSON( jsonString );
-//http://jsonviewer.stack.hu/
 
 $image_size=getimagesize($plan);
 //width: $image_size[0]
 //height: $image_size[1]
-
 
 $svg_head="<?xml version=\"1.0\"?>\n<svg width=\"".$image_size[0]."\" height=\"".$image_size[1]."\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n";
 $meta="<metadata id=\"metadata3045\">image/svg+xml</metadata>\n";
@@ -212,116 +216,216 @@ $markup= $svg_head.$meta.$g.$image.$shapes.$g2.$svg_foot;
   '#prefix' => "<div class=\"svg\" >",
   '#suffix' => "</div>",
   );
-
 //-----end SVG -----//
 
 
 //-------javascript functions------//
 
-$js_header="<script type=\"text/javascript\">";
-$js_footer="</script>";
+$js_header="\n<script type=\"text/javascript\">\n";
+$js_footer="\n</script>\n";
 
-//objects
-
+//--- objects ---//
 $objects="";
-$objects.="var rooms=$json_en \n";
-$objects.="var map=$map_en \n";
+$objects.="var rooms=$json_en ;\n";
+$objects.="var map=$map_en ;\n";	
+$objects.="var maxop=$maxlight;";
 
 $rarray['script_vars']= array(
   '#markup' => $js_header.$objects.$js_footer, 
  );
 
-//switched_on/switched_off: change the stage
+//---- switched_on/switched_off functions: change the stage (on page)
 $script_on="";
 $script_off="";
 
-
-//alert(rooms.ROOM1.lights);
-//document.getElementById(id).src=
-//document.getElementById(id).click=\"switched_off(this.id)\";
-/*
-
-//document.getElementById(id).src=
-
-alert(capability.startsWith(\"$main_light\"));
-
-
-//	document.getElementById(id).onclick=\"switched_off(this.id)\";
-//	jQuery(this).click(this.id,handler(\"switched_off\"));
-	jQuery('#'+id).unbind('click');
-
-	document.getElementById(id).onclick= switched_off;addEventListener
-
-<img src="sites/all/themes/off2.png" height="100" id="ROOM1_desklamp1" onclick="switched_on(this.id)">
-
-*/
-//switched on
-
-
+//switch_on
 $script_on.="
-
 function switched_on(id){
 
 	var temp=id.split(\"_\");
 	room=temp[0];
 	capability=temp[1];
 
+	rooms[room][capability+'_light']=1;
 
+	if (capability.substring(0,\"$main_light\".length)== \"$main_light\"){";
 
-	document.getElementById(id).onclick=function() { switched_off(this.id); };
-	if (capability.substring(0,\"$main_light\".length)== \"$main_light\"){
-		document.getElementById(id).src=\"sites/all/themes/newswitch1.png\";
-	}
-	else{
+if (user_access("open/close_lights")) //only needed if we have switches
+	$script_on.="		document.getElementById(id).src=\"sites/all/themes/newswitch1.png\";";
+
+$script_on.="current=0;
+		lights=rooms[room]['lights'];
+		for(var i=1;i<=lights;i++){
+			current=+rooms[room]['$main_light'+i+'_light'];
+		}
+		jQuery('#'+room).attr('opacity',maxop-current*(maxop/lights));
+
+	}";
+if (user_access("open/close_lights")) //only needed if we have switches
+	$script_on.="	else{
 		document.getElementById(id).src=\"sites/all/themes/on2.png\";
 	}
+	document.getElementById(id).onclick=function() { switch_off(this.id); };";
 
-}";
+$script_on.="\n}\n";
 
-$script_off.="\n
-function switched_off(id){\n
+//switch_off
+$script_off.="
+function switched_off(id){
 
 	var temp=id.split(\"_\");
 	room=temp[0];
 	capability=temp[1];
 
-	document.getElementById(id).onclick=function() { switched_on(this.id); };
+	rooms[room][capability+'_light']=0;
 
-	if (capability.substring(0,\"$main_light\".length)== \"$main_light\"){
-		document.getElementById(id).src=\"sites/all/themes/newswitch0.png\";
-	}
-	else{
+	if (capability.substring(0,\"$main_light\".length)== \"$main_light\"){";
+
+if (user_access("open/close_lights")) //only needed if we have switches
+	$script_off.="		document.getElementById(id).src=\"sites/all/themes/newswitch0.png\";";
+
+$script_off.="		current=0;
+		lights=rooms[room]['lights'];
+		for(var i=1;i<=lights;i++){
+			current=+rooms[room]['$main_light'+i+'_light'];
+		}
+		jQuery('#'+room).attr('opacity',maxop-current*(maxop/lights));
+
+	}";
+if (user_access("open/close_lights")) //only needed if we have switches
+	$script_off.="	else{
 		document.getElementById(id).src=\"sites/all/themes/off2.png\";
 	}
+	document.getElementById(id).onclick=function() { switch_on(this.id); };";
 
-}";
+$script_off.="\n}\n";
 
 $rarray['script_alter_page']= array(
   '#markup' => $js_header.$script_on.$script_off.$js_footer, 
  );
 
-
-
-
-
-
+//----- Restricted Access -----//
 if (user_access("open/close_lights")){
 
-sort($sw_header);
-ksort($switches);
+	//----- Javascript onclick functions -----//
+	$switch_on="";
+	$switch_off="";
 
-//maybe show them in table (border="0")
-$rarray['switches_test'] = array(
-	'#theme' => 'table',
-	'#header'=> $sw_header,
-	'#rows' => array($switches),
-	'#attributes'=> array(
-			'id' => 'simple_table'
-			),
-	'#sticky' => false,
-);
+	//switch_on
+	$switch_on.="
+	function switch_on(id){
+		var timestamp = new Date().valueOf();
+		var temp=id.split(\"_\");
+		room=temp[0];
+		capability=temp[1];
+
+//switched_on(id);
+
+//url= document.domain+':8080/uberdust/rest/testbed/2/node/$node_pref'+ 'door/capability/$cap_pref'+'card/latestreading/json';
+//alert(url);
+
+		xmlhttp=new XMLHttpRequest();
+		xmlhttp.open(\"GET\",'$testbed'+'node/$node_pref'+'virtual:'+room+ '/capability/$cap_pref'+capability+'/insert/timestamp/'+timestamp+'/reading/1/');
+		xmlhttp.send();";
+
+	if ($websocket =='Off'){
+
+//		switched_on(id);
+
+	}
+
+	$switch_on.="\n	}\n";
+
+	
+
+	//switch_off
+	$switch_off.="
+	function switch_off(id){
+		var timestamp = new Date().valueOf();
+		var temp=id.split(\"_\");
+		room=temp[0];
+		capability=temp[1];
+
+//switched_off(id);
+
+		xmlhttp=new XMLHttpRequest();
+		xmlhttp.open(\"GET\",'$testbed'+'node/$node_pref'+'virtual:'+room+ '/capability/$cap_pref'+capability+'/insert/timestamp/'+timestamp+'/reading/0/');
+		xmlhttp.send();";
+
+	if ($websocket =='Off'){
+
+//		switched_off(id);
+
+	}
+
+	$switch_off.="\n	}\n";
+
+	$rarray['script_switch_callbacks']= array(
+	  '#markup' => $js_header.$switch_on.$switch_off.$js_footer, 
+	 );
 
 
+	//------ SWITCHES -------//
+	sort($sw_header);
+	ksort($switches);
+
+	$rarray['switches_test'] = array(
+		'#theme' => 'table',
+		'#header'=> $sw_header,
+		'#rows' => array($switches),
+		'#attributes'=> array(
+				'id' => 'simple_table'
+				),
+		'#sticky' => false,
+	);
+
+
+}
+//----- END Restricted -----//
+
+//------ WEBSOCKETS -------//
+
+if (($websocket=='On')||($websocket =='On-Dyn')){
+
+	$script_onws="";
+	$script_connect="";
+
+	$script_onws.="
+	function onwsmessage(livestring){
+
+		var command=livestring.split(\" \");
+		node= command[0].replace('$node_pref',''); 
+		capability=command[1].replace('$cap_pref','');
+		reading=command[8];
+
+		//alert(node +' '+ capability + ' ' + reading);
+
+		virtual=map[node][capability+'_virtual'];
+		v_cap=map[node][capability+'_capability'];
+
+		if (reading==\"0.0\"){
+			switched_off(virtual+'_'+v_cap);
+		}
+		else{
+			switched_on(virtual+'_'+v_cap);
+		}
+	}\n";
+
+	$ws_lib="\n<script type=\"text/javascript\" src=\"sites/all/modules/pspace/websocket.js\"></script>\n";
+
+$script_connect="";
+	if ($websocket =='On'){
+		for($i=1;$i<=$ws_counter;$i++)
+		$script_connect.=" connect(\"$ws_host\",\"".$node_pref.$ws_array[$i]['node']."\",\"".$cap_pref.$ws_array[$i]['capability']."\");\n";
+	}
+	else if ($websocket =='On-Dyn'){
+		for($i=1;$i<=$ws_counter;$i++)
+		$script_connect.=" connect(document.domain+':8080/uberdust',\"".$node_pref.$ws_array[$i]['node']."\",\"".$cap_pref.$ws_array[$i]['capability']."\");\n";
+	}
+
+	$rarray['script_websocket']= array(
+	  '#markup' => $ws_lib.$js_header.$script_onws.$script_connect.$js_footer, 
+	 );
 }
 
 return $rarray;
