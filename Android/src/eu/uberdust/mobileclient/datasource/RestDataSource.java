@@ -69,6 +69,11 @@ public class RestDataSource {
 			node.setZ("Undefined");
 			node.setPhi("Undefined");
 			node.setTheta("Undefined");
+			
+			node.setReport("Undefined");
+			node.setWidth("Undefined");
+			node.setHeight("Undefined");
+			
 			if(!node.getName().contains("virtual")) {
 				JSONArray arr = obj.getJSONArray(node.getName());
 				for(i=0;i<arr.length();i++)
@@ -89,6 +94,12 @@ public class RestDataSource {
 									node.setPhi(cap.getString("reading"));
 					else if(capAttr.equalsIgnoreCase("theta") || capAttr.contains("capability:theta"))
 									node.setTheta(cap.getString("reading"));
+					else if(capAttr.equalsIgnoreCase("report") || capAttr.contains("capability:report"))
+									node.setReport(cap.getString("reading"));
+					else if(capAttr.equalsIgnoreCase("width") || capAttr.contains("capability:width"))
+									node.setWidth(cap.getString("reading"));
+					else if(capAttr.equalsIgnoreCase("height") || capAttr.contains("capability:height"))
+									node.setHeight(cap.getString("reading"));
 					else
 					{
 						// Unknown capability. Add it to node
@@ -136,6 +147,9 @@ public class RestDataSource {
 			node.setZ("Undefined");
 			node.setPhi("Undefined");
 			node.setTheta("Undefined");
+			node.setReport("Undefined");
+			node.setWidth("Undefined");
+			node.setHeight("Undefined");
 			if(node.getName().contains("virtual")) {
 				Log.d("NODE",node.getName());
 				JSONArray arr = obj.getJSONArray(node.getName());
@@ -157,6 +171,12 @@ public class RestDataSource {
 						node.setPhi(cap.getString("reading"));
 					else if(capAttr.equalsIgnoreCase("theta") || capAttr.contains("capability:theta"))
 						node.setTheta(cap.getString("reading"));
+					else if(capAttr.equalsIgnoreCase("report") || capAttr.contains("capability:report"))
+						node.setReport(cap.getString("reading"));
+					else if(capAttr.equalsIgnoreCase("width") || capAttr.contains("capability:width"))
+						node.setWidth(cap.getString("reading"));
+					else if(capAttr.equalsIgnoreCase("height") || capAttr.contains("capability:height"))
+						node.setHeight(cap.getString("reading"));
 					else
 					{
 						// Unknown capability. Add it to node
