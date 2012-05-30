@@ -179,7 +179,28 @@ public class DataCache {
 	    	    	    	else
 	    	    	    		serializer.text(tree.getRoom(i).getNode(j).getTheta());
 	    					serializer.endTag(null, "theta");
-	    		    	
+	    		    	 					
+	    					serializer.startTag(null, "report");
+	    					if( tree.getRoom(i).getNode(j).getReport() == null )
+	    	    	    		serializer.text("null");
+	    	    	    	else
+	    	    	    		serializer.text(tree.getRoom(i).getNode(j).getReport());
+	    					serializer.endTag(null, "report");
+	    					
+	    					serializer.startTag(null, "width");
+	    					if( tree.getRoom(i).getNode(j).getWidth() == null )
+	    	    	    		serializer.text("null");
+	    	    	    	else
+	    	    	    		serializer.text(tree.getRoom(i).getNode(j).getWidth());
+	    					serializer.endTag(null, "width");
+	    					
+	    					serializer.startTag(null, "height");
+	    					if( tree.getRoom(i).getNode(j).getHeight() == null )
+	    	    	    		serializer.text("null");
+	    	    	    	else
+	    	    	    		serializer.text(tree.getRoom(i).getNode(j).getHeight());
+	    					serializer.endTag(null, "height");
+
 	    					serializer.startTag(null, "room");
 	    					if( tree.getRoom(i).getNode(j).getRoom() == null )
 	    	    	    		serializer.text("null");
@@ -349,7 +370,19 @@ public class DataCache {
 				  else if ( event == XmlPullParser.START_TAG && xpp.getName().equals("z")){
 					  xpp.next();
 					  tempnode.setZ(xpp.getText());
+				  }
+				  else if ( event == XmlPullParser.START_TAG && xpp.getName().equals("report")){
+					  xpp.next();
+					  tempnode.setReport(xpp.getText());
 				  } 
+				  else if ( event == XmlPullParser.START_TAG && xpp.getName().equals("width")){
+					  xpp.next();
+					  tempnode.setWidth(xpp.getText());
+				  } 
+				  else if ( event == XmlPullParser.START_TAG && xpp.getName().equals("height")){
+					  xpp.next();
+					  tempnode.setHeight(xpp.getText());
+				  }
 				  else if ( event == XmlPullParser.START_TAG && xpp.getName().equals("room")){
 					  xpp.next();
 					  tempnode.setRoom(xpp.getText());

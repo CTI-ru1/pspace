@@ -47,7 +47,7 @@ public final class MyCommandFragment extends Fragment {
 		ToggleButton button;
 		
 		
-		if (currentCapability.getAttribute().contains("light")){
+		if (currentCapability.getAttribute().contains("light") || currentCapability.getAttribute().contains("lamp")){
 			view = inflater.inflate(R.layout.slideview_command_light, container, false);
 			button =(ToggleButton)view.findViewById(R.id.toggleButton1);
 			if(reading.getValue().equals("1.0")){
