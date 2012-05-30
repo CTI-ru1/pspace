@@ -35,7 +35,7 @@ public final class MyHistoryFragment extends Fragment {
 	List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
 
 	String[] from = new String[] {"Timestamp", "Value"};
-	int[] to = new int[] {R.id.room, R.id.node };
+	int[] to = new int[] {R.id.node, R.id.room };
 
 
 	public static MyHistoryFragment newInstance(String content) {
@@ -85,7 +85,7 @@ public final class MyHistoryFragment extends Fragment {
 		 	layout.addView(graphView);
 	    }
 	    if(mContent.equals("History")){
-	    	view = inflater.inflate(R.layout.slideview_list, container, false);
+	    	view = inflater.inflate(R.layout.slideview_history, container, false);
 	    	lv= (ListView) view.findViewById(R.id.list);
 		    SimpleAdapter adapter = new SimpleAdapter(getActivity().getApplicationContext(), fillMaps, R.layout.row, from, to);
 		    lv.setAdapter(adapter);

@@ -58,14 +58,14 @@
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
             android:src="@drawable/title_logo" />
-
+
         <Button
             android:id="@+id/graph"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
-            android:text="Graph" />
+            android:text="History" />
 
     </RelativeLayout>
 
