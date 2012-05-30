@@ -13,8 +13,6 @@ $blocks['last_entries']=array(
 return $blocks;
 }
 
-
-
 function pspace_last_entries_block_view($delta = '')
 {
 	$block=array();
@@ -32,12 +30,9 @@ function pspace_last_entries_block_view($delta = '')
 	$json=file_get_contents("$testbed/node/".$node_pref."door/capability/".$cap_pref."card/json/limit/25");
 	$last_json=get_object_vars(json_decode($json));
 
-	//$last.="<br><br>".date( 'D, d M Y H:i:s')."<br><br>";
-
 	foreach ($last_json['readings'] as $reading){
 
 	$read=get_object_vars($reading);
-	//drupal_set_message("<pre>".print_r($read,TRUE)."</pre>");
 
 	if ($read['timestamp']/1000 > $threshold){
 
@@ -63,8 +58,3 @@ function pspace_last_entries_block_view($delta = '')
 
 return $block;
 }
-
-
-//-------------------------------------------
-//-------------- P-Space PAGES --------------
-//-------------------------------------------

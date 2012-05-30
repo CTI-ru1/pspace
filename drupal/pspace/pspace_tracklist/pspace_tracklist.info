@@ -1,6 +1,6 @@
-name = P-Space Nodes' Pages
+name = P-Space Tracklist Block
 core = 7.x
-description = Status Pages for Nodes
+description = Tracklist Block
 package = Uberdust
 
 dependencies[] = pspace

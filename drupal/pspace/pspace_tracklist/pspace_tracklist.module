@@ -1,0 +1,48 @@
+<?php
+
+//-------------------------------------------
+//-------------- P-Space HOOKS --------------
+//-------------------------------------------
+
+function pspace_tracklist_block_info()
+{
+$blocks['tracklist']=array(
+'info'=>t('Tracklist'),
+);
+
+return $blocks;
+}
+
+
+function pspace_tracklist_block_view($delta = '')
+{
+	$block=array();
+
+	$testbed = variable_get_value('pspace_rest');
+	$node_pref = variable_get_value('pspace_node_prefix');
+	$cap_pref = variable_get_value('pspace_capability_prefix');
+
+	$threshold= time() - ( 24 * 60 * 60);
+
+	$header="<h2>Tracklist</h2>\n";
+	$last="";
+
+	$json=file_get_contents("$testbed/node/".$node_pref."hifi/capability/".$cap_pref."track/json/limit/5");
+	$last_json=get_object_vars(json_decode($json));
+
+	foreach ($last_json['readings'] as $reading){
+
+	$read=get_object_vars($reading);
+
+	if ($read['timestamp']/1000 > $threshold){
+		$last.= date('H:i',$read['timestamp']/1000)." - ".$read['stringReading']."<br>";	
+	}
+
+	}
+
+	$block['content']=array(
+		'#markup'=>$header.$last,
+	);
+
+return $block;
+}

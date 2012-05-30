@@ -53,7 +53,7 @@ $virtual_nodes=array();
 
 $i=0;
 foreach ($status as $key=>$value) {
-		
+	
 	$j=0;	
 	foreach ($value as $node_readings){
 		$capability=str_replace($cap_pref,"",$node_readings->capability);
@@ -64,8 +64,10 @@ foreach ($status as $key=>$value) {
 	
 	$cleankey=str_replace($node_pref,"",$key);
 
-	if ($cleankey=='hifi')
-		$hifi= $node['track'];
+	if ($cleankey=='hifi'){
+		$hifi['track']= $node['track'];
+		$hifi['timestamp']=$node_readings->timestamp;
+	}
 
 //svg dots + mouseover
 	
@@ -73,18 +75,17 @@ foreach ($status as $key=>$value) {
 
 		$virtual_nodes[$cleankey]=array(
 			'title' => $cleankey,
-			'href' => "status",
+			'href' => "status/$cleankey",
 			'attributes' => array('style'=>"color:#0071B3;background-color:transparent"),
-			'query'=>array('node'=>"$cleankey")
 		);	
 
 	}
-	else if ((isset($node['x'])) && (isset($node['y']))){
+	else if ((isset($node['x'])) && (isset($node['y'])) && ($node['x']!='0') && ($node['y']!='0') ){
 		$x=explode(".",$node['x']);
 		$y=explode(".",$node['y']);
 
 		//link (blue dot)
-		$nodes.="<a xlink:href=\"status?node=$cleankey\">\n
+		$nodes.="<a xlink:href=\"status/$cleankey\">\n
 		<circle cx=\"".$x[0]."\" cy=\"".$y[0]."\" r=\"5\" fill=\"blue\" id='$cleankey' onmouseover=\"document.getElementById('$cleankey-status').style.opacity=1;\" onmouseout=\"document.getElementById('$cleankey-status').style.opacity=0;\" >\n
 		</circle></a>\n";
 
@@ -111,9 +112,8 @@ foreach ($status as $key=>$value) {
 
 		$other_nodes[$cleankey]=array(
 			'title' => $cleankey,
-			'href' => "status",
+			'href' => "status/$cleankey",
 			'attributes' => array('style'=>"color:#0071B3;background-color:transparent"),
-			'query'=>array('node'=>"$cleankey")
 		);	
 
 	}
@@ -123,7 +123,15 @@ $i++;
 }
 
 
-$marquee="<marquee behavior=\"alternate\" scrollamount=\"10\">Now playing: $hifi</marquee>";
+if( time()-$hifi['timestamp']/1000 < 5*60){
+	$marquee="<marquee behavior=\"alternate\" scrollamount=\"10\">Now playing: ".$hifi['track']."</marquee>";
+}
+else if (time()-$hifi['timestamp']/1000 > 24*60*60){
+	$marquee="";
+}
+else{
+	$marquee="<marquee behavior=\"alternate\" scrollamount=\"10\">Last Played: ".$hifi['track']." at ".date('H:i',$hifi['timestamp']/1000)."</marquee>";
+}
 
  $rarray['hifi']= array(
   '#markup' => $marquee, 
@@ -158,6 +166,9 @@ $markup= $svg_head.$meta.$g.$image.$boxes.$nodes.$g2.$svg_foot;
 
 //-----end svg
 			
+
+ksort($other_nodes);
+ksort($virtual_nodes);
 
 $rarray['other_nodes'] = array(
 '#theme' => 'links',

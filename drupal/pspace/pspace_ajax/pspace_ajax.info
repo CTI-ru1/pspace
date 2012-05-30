@@ -1,6 +1,6 @@
-name = P-Space Nodes' Pages
+name = P-Space Ajax Callbacks 
 core = 7.x
-description = Status Pages for Nodes
+description = Ajax Callbacks
 package = Uberdust
 
 dependencies[] = pspace

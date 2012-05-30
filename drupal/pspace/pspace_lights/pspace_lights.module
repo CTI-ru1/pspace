@@ -314,51 +314,64 @@ if (user_access("open/close_lights")){
 	//switch_on
 	$switch_on.="
 	function switch_on(id){
-		var timestamp = new Date().valueOf();
 		var temp=id.split(\"_\");
 		room=temp[0];
 		capability=temp[1];
 
-//switched_on(id);
-
-//url= document.domain+':8080/uberdust/rest/testbed/2/node/$node_pref'+ 'door/capability/$cap_pref'+'card/latestreading/json';
-//alert(url);
-
-		xmlhttp=new XMLHttpRequest();
-		xmlhttp.open(\"GET\",'$testbed'+'node/$node_pref'+'virtual:'+room+ '/capability/$cap_pref'+capability+'/insert/timestamp/'+timestamp+'/reading/1/');
-		xmlhttp.send();";
+		xmlhttp=new XMLHttpRequest();";
 
 	if ($websocket =='Off'){
-
-//		switched_on(id);
-
+		$switch_on.="
+		xmlhttp.onreadystatechange=function()
+		  {
+		  if (xmlhttp.readyState==4 && xmlhttp.status==200)
+		    {
+			switched_on(id);
+		    }
+		}\n";
 	}
 
-	$switch_on.="\n	}\n";
+/*
+//			json=jQuery.parseJSON(xmlhttp.responseText);
+//			alert(json.readings[0].reading);
+			xmlhttp2=new XMLHttpRequest();
+			xmlhttp2.open(\"GET\",\"ajax/\"+rooms[room][capability+'_node']+'/'+rooms[room][capability+'_capability']);
+			xmlhttp2.send();
+//		xmlhttp.open(\"GET\",\"ajax/\"+rooms[room][capability+'_node']+'/'+rooms[room][capability+'_capability']);
+*/
 
-	
+	$switch_on.="
+		xmlhttp.open(\"GET\",\"ajax/\"+room+'/'+capability+'/'+1);
+		xmlhttp.send();
+		}\n";
+
 
 	//switch_off
 	$switch_off.="
 	function switch_off(id){
-		var timestamp = new Date().valueOf();
 		var temp=id.split(\"_\");
 		room=temp[0];
 		capability=temp[1];
 
-//switched_off(id);
+		xmlhttp=new XMLHttpRequest();";
 
-		xmlhttp=new XMLHttpRequest();
-		xmlhttp.open(\"GET\",'$testbed'+'node/$node_pref'+'virtual:'+room+ '/capability/$cap_pref'+capability+'/insert/timestamp/'+timestamp+'/reading/0/');
-		xmlhttp.send();";
 
 	if ($websocket =='Off'){
-
-//		switched_off(id);
-
+		$switch_off.="
+		xmlhttp.onreadystatechange=function()
+		  {
+		  if (xmlhttp.readyState==4 && xmlhttp.status==200)
+		    {
+			switched_off(id);
+		    }
+		}\n";
 	}
 
-	$switch_off.="\n	}\n";
+	$switch_off.="
+		xmlhttp.open(\"GET\",\"ajax/\"+room+'/'+capability+'/'+0);
+		xmlhttp.send();
+		}\n";
+
 
 	$rarray['script_switch_callbacks']= array(
 	  '#markup' => $js_header.$switch_on.$switch_off.$js_footer, 

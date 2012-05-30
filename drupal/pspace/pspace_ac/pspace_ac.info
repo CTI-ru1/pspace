@@ -1,6 +1,6 @@
-name = P-Space Nodes' Pages
+name = P-Space AC Pages
 core = 7.x
-description = Status Pages for Nodes
+description = AC Pages
 package = Uberdust
 
 dependencies[] = pspace

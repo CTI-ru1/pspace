@@ -11,8 +11,8 @@ $stoixeia=array();
 $stoixeia['status']=array(
 	'title'=> t('Nodes'),
 	'page callback' => 'node_status',
+	'page arguments' => array(1),
 	'access callback'=>TRUE,
-	//'type'=>MENU_CALLBACK,
 	'menu_name' => 'main-menu',
 	'weight' => '7'
 	);
@@ -21,12 +21,23 @@ return $stoixeia;
 }
 
 
+function pspace_nodes_permission() {
+  
+  $perm_array= array(
+    'send_node_command' => array(
+      'title' => t('Send Node Command'), 
+    ),
+  );
+	
+  return $perm_array;
+}
+
 //-------------------------------------------
 //-------------- P-Space PAGES --------------
 //-------------------------------------------
 
 
-function node_status()
+function node_status($node_name=NULL)
 {
 $rarray=array();
 
@@ -38,36 +49,135 @@ $status=get_object_vars(json_decode($json));
 $node_pref = variable_get_value('pspace_node_prefix');
 $cap_pref = variable_get_value('pspace_capability_prefix');
 
+$var_non = variable_get_value('pspace_non_reading'); 
+$non_reads=explode(',',$var_non);
 
-if((isset($_GET['node']))&&(isset($status[$node_pref.$_GET['node']]))){
+if( $node_name && (isset($status[$node_pref.$node_name]))){
 
-	$node_name=$_GET['node'];
 	$i=0;
+	$node_non=array();
+
+
+
+	if(substr($node_name,0,8)=="virtual:"){
+		//get routing xml
+		$route = variable_get_value('pspace_virtual_routing_xml');
+		$xml = simplexml_load_file($route);
+		$vars=get_object_vars($xml);
+		$room_id=str_replace("virtual:ROOM","",$node_name);
+
+		$count=$vars['room'][$room_id-1]->route->count();
+		$xml_data=get_object_vars($vars['room'][$room_id-1]);
+	}
+
 
 	foreach ($status[$node_pref.$node_name] as $node_readings){
 		$capability=str_replace($cap_pref,"",$node_readings->capability);
-		$node[$i]= array($capability, isset($node_readings->reading)? $node_readings->reading : $node_readings->stringReading );
-		$i++;
-	}	
+
+		if (! in_array($capability,$non_reads)){
+			$node[$i]= array($capability, isset($node_readings->reading)? $node_readings->reading : $node_readings->stringReading );
+
+			if(substr($node_name,0,8)=="virtual:"){
+
+				for ($j=0;$j<$count;$j++){
+					if ($xml_data['route'][$j]->capability == $capability){
+						$dest=get_object_vars($xml_data['route'][$j]->destination);
+						//dest_node
+						$node[$i][2]=$dest['node'];
+						//dest_capability
+						$node[$i][3]=$dest['capability'];
+					}
+				}
+
+				if (!isset($dest)){
+					$node[$i][2]='-';
+					$node[$i][3]='-';
+				}
+				unset($dest);
+			}
+
+			$i++;
+		}else{
+			if ($capability != 'report')
+			$node_non[$capability]= isset($node_readings->reading)? $node_readings->reading : $node_readings->stringReading ;
+		}
+	}
+
+
+	ksort($node_non);
+	$print_non="";
+	foreach ($node_non as $key=>$value)
+		$print_non.="<strong>$key</strong>: ".$value."<br>\n";
 
 	$rarray['node_name'] =  array(
-		'#markup' => "<p><h1>$node_name</h1></p><br>",
+		'#markup' => "<p><h1>$node_name</h1>$print_non</p><br>\n",
 	);
 
-	$rarray['capabilities'] = array(
-		'#theme' => 'table',
-		'#header'=> array('Capability','Latest Reading'),
-		'#rows' =>$node,
-	);
 
-		//dummy -- haven't decided yet
-	if(substr($node_name,0,8)=="virtual:")
-		drupal_set_message("This is a Virtual Node! (Haven't decided how to handle yet)");
+	$args['node']=$node_name;
+	$args['x']=isset($node_non['x'])?$node_non['x'] : 0;
+	$args['y']=isset($node_non['y'])?$node_non['y'] : 0;
+
+	if(substr($node_name,0,8)=="virtual:"){
+		$args['virtual']=TRUE;
+		$args['height']=isset($node_non['height'])?$node_non['height'] : 0;
+		$args['width']=isset($node_non['width'])?$node_non['width'] : 0;
+
+
+
+		//get routing xml
+		$route = variable_get_value('pspace_virtual_routing_xml');
+		$xml = simplexml_load_file($route);
+		$vars=get_object_vars($xml);
+
+
+
+	}
+	else{
+		$args['virtual']=FALSE;
+		$args['z']=isset($node_non['z'])?$node_non['z'] : 0;
+	}
+
+	if (user_access('send_node_command')){
+		$rarray['settings_form'] = drupal_get_form('set_location',$args);
+	}
+
+
+	if(substr($node_name,0,8)=="virtual:"){
+		$rarray['capabilities'] = array(
+			'#theme' => 'table',
+			'#header'=> array('Capability','Latest Reading','Dest. Node','Dest. Capability'),
+			'#rows' =>$node,
+		);
+
+	}
+	else{
+		$rarray['capabilities'] = array(
+			'#theme' => 'table',
+			'#header'=> array('Capability','Latest Reading'),
+			'#rows' =>$node,
+		);
+	}
+
+
+	if (user_access('send_node_command')){
+		if(substr($node_name,0,8)=="virtual:"){
+
+			$rarray['commands_form_header']=array(
+				'#markup' => "<p><h3>Send Commands</h3></p><br>\n",
+			);
+
+			foreach($node as $values){
+				$rarray['commands_form'][$values[0]] = drupal_get_form('send_command',$values,$node_name);
+			}
+		}
+	}
+	//ksort($rarray['commands_form']);
 
 }
 else{
 
-	if(isset($_GET['node'])) 
+	if($node_name) 
 		drupal_set_message('Invalid Node','error');
 
 	$all_nodes=array();
@@ -79,20 +189,21 @@ else{
 		if(substr($cleankey,0,8)=="virtual:"){
 			$virtual_nodes[$cleankey]=array(
 				'title' => $cleankey,
-				'href' => "status",
+				'href' => "status/$cleankey",
 				'attributes' => array('style'=>"color:#0071B3;background-color:transparent"),
-				'query'=>array('node'=>"$cleankey")
 			);	
 		}
 		else{
 			$all_nodes[$cleankey]=array(
 				'title' => $cleankey,
-				'href' => "status",
+				'href' => "status/$cleankey",
 				'attributes' => array('style'=>"color:#0071B3;background-color:transparent"),
-				'query'=>array('node'=>"$cleankey")
 			);	
 		}
 	}
+
+	ksort($all_nodes);
+	ksort($virtual_nodes);
 
 	$rarray['all_nodes'] = array(
 		'#theme' => 'links',
@@ -113,5 +224,193 @@ else{
 }
 
 return $rarray;
+
+}
+
+
+
+//-------------------------------------------
+//----------- Set Location Form -------------
+//-------------------------------------------
+function set_location($form, &$form_state, $args){
+
+$form['location'] = array(
+        '#title' => t('Change Location'),
+        '#type' => 'fieldset',
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+);
+
+$form['location']['x'] = array( 
+	'#type' => 'textfield',
+	'#title' => t('x'),
+	'#size' => 12, 
+	'#maxlength' => 12, 
+	'#default_value' => ($args['x']== 0)? null : $args['x'],
+);
+
+$form['location']['y'] = array( 
+	'#type' => 'textfield',
+	'#title' => t('y'),
+	'#size' => 12, 
+	'#maxlength' => 12, 
+	'#default_value' => ($args['y']== 0)? null : $args['y'],
+);
+
+if ($args['virtual']){
+	$form['location']['height'] = array( 
+		'#type' => 'textfield',
+		'#title' => t('height'),
+		'#size' => 12, 
+		'#maxlength' => 12, 
+		'#default_value' => ($args['height']== 0)? null : $args['height'],
+	);
+
+	$form['location']['width'] = array( 
+		'#type' => 'textfield',
+		'#title' => t('width'),
+		'#size' => 12, 
+		'#maxlength' => 12, 
+		'#default_value' => ($args['width']== 0)? null : $args['width'],
+	);
+}
+else{
+	$form['location']['z'] = array( 
+		'#type' => 'textfield',
+		'#title' => t('z'),
+		'#size' => 12, 
+		'#maxlength' => 12, 
+		'#default_value' => ($args['z']== 0)? null : $args['z'],
+	);
+}
+
+	$form['location']['node']=array(
+		'#type' => 'hidden',
+		'#value' => $args['node'],
+	);
+
+
+$form['location']['submit_button'] = array( 
+    '#type' => 'submit',	
+    '#value' => t('Submit'),
+);
+
+return $form;
+
+}
+
+
+//--------- Form Validate & Submit ----------
+
+function set_location_validate($form_id, &$form_state){
+
+}
+
+function set_location_submit($form_id, &$form_state)
+{
+
+if (user_access('send_node_command')){
+
+ $testbed = variable_get_value('pspace_rest');
+ $node_pref = variable_get_value('pspace_node_prefix');
+ $cap_pref = variable_get_value('pspace_capability_prefix');
+
+if ($form_state['values']['x'] != null )
+	file_get_contents("$testbed/node/$node_pref".$form_state['values']['node']."/capability/$cap_pref"."x/insert/timestamp/".time()."/reading/".$form_state['values']['x']."/");
+
+if ($form_state['values']['y'] != null )
+	file_get_contents("$testbed/node/$node_pref".$form_state['values']['node']."/capability/$cap_pref"."y/insert/timestamp/".time()."/reading/".$form_state['values']['y']."/");
+
+
+if(substr($form_state['values']['node'],0,8)=="virtual:"){
+
+	if ($form_state['values']['height'] != null )
+		file_get_contents("$testbed/node/$node_pref".$form_state['values']['node']."/capability/$cap_pref"."height/insert/timestamp/".time()."/reading/".$form_state['values']['height']."/");
+	if ($form_state['values']['width'] != null )
+		file_get_contents("$testbed/node/$node_pref".$form_state['values']['node']."/capability/$cap_pref"."width/insert/timestamp/".time()."/reading/".$form_state['values']['width']."/");
+}
+else
+{
+	if ($form_state['values']['z'] != null )
+		file_get_contents("$testbed/node/$node_pref".$form_state['values']['node']."/capability/$cap_pref"."z/insert/timestamp/".time()."/reading/".$form_state['values']['z']."/");
+}
+
+}
+
+}
+
+//-------------------------------------------
+//----------- Send Command Form -------------
+//-------------------------------------------
+
+function send_command($form, &$form_state, $args,$node_name){
+	$form=array();
+
+	$form['command'] = array(
+	        '#title' => $args[0],
+	        '#type' => 'fieldset',
+	        '#collapsible' => TRUE,
+	        '#collapsed' => TRUE,
+	);
+
+	$description="Target: ";
+	if ($args[2]!='-'){
+		$description.= "<br>\nNode: ".$args[2];
+		if ($args[3]!='-')
+		$description.= "  Capability: ".$args[3];
+	}else
+		$description.= "Unknown";
+
+	$form['command']['value'] = array( 
+		'#type' => 'textfield',
+		'#title' => t($args[0]),
+		'#description' => $description ,
+		'#size' => 12, 
+		'#maxlength' => 12, 
+		'#default_value' => $args[1],
+	);
+
+	$form['command']['node']=array(
+		'#type' => 'hidden',
+		'#value' => $node_name,
+	);
+
+	$form['command']['capability']=array(
+		'#type' => 'hidden',
+		'#value' => $args[0],
+	);
+
+	$form['command']['submit_button'] = array( 
+	    '#type' => 'submit',	
+	    '#value' => t('Submit'),
+	);
+
+
+	return $form;
+}
+
+
+//--------- Form Validate & Submit ----------
+
+function send_command_validate($form_id, &$form_state){
+
+}
+
+function send_command_submit($form_id, &$form_state)
+{
+//drupal_set_message("<pre>".print_r($form_state['values'],TRUE)."</pre>");
+
+if (user_access('send_node_command')){
+
+ $testbed = variable_get_value('pspace_rest');
+ $node_pref = variable_get_value('pspace_node_prefix');
+ $cap_pref = variable_get_value('pspace_capability_prefix');
+
+
+if ($form_state['values']['value'] != null )
+	file_get_contents("$testbed/node/$node_pref".$form_state['values']['node']."/capability/$cap_pref".$form_state['values']['capability']."/insert/timestamp/".time()."/reading/".$form_state['values']['value']."/");
+
+
+}
 
 }

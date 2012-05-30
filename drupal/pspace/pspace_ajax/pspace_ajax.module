@@ -1,0 +1,87 @@
+<?php
+
+//-------------------------------------------
+//-------------- P-Space HOOKS --------------
+//-------------------------------------------
+
+function pspace_ajax_menu()
+{
+$stoixeia=array();
+
+$stoixeia['ajax']=array(
+	'page callback'=>'pspace_ajax_callback',
+	'page arguments' => array(1,2,3),
+	'access callback'=>TRUE,
+	'type' => MENU_CALLBACK ,
+	'menu_name'=> 'main-menu',
+	'weight'=> 5,
+);
+
+return $stoixeia;
+}
+
+
+
+function pspace_ajax_permission() {
+  
+  $perm_array= array(
+    'send_ajax_command' => array(
+      'title' => t('Send Ajax Command'), 
+    ),
+  );
+	
+  return $perm_array;
+}
+
+
+//-------------------------------------------
+//-------------- P-Space PAGE --------------
+//-------------------------------------------
+
+
+function pspace_ajax_callback($node = NULL, $capability= NULL, $value = NULL)
+{
+
+//echo $node. $capability . $value;
+
+
+if (($node!= " " ) && ($capability!= " " )){
+
+	$testbed = variable_get_value('pspace_rest');
+	$node_pref = variable_get_value('pspace_node_prefix');
+	$cap_pref = variable_get_value('pspace_capability_prefix');
+
+	if ( is_numeric($value) ){
+		if (user_access('send_ajax_command')){
+			$url="$testbed/node/$node_pref"."virtual:$node"."/capability/$cap_pref".$capability."/insert/timestamp/".time()."/reading/$value/";
+/*
+			file_get_contents($url);
+
+			$route = variable_get_value('pspace_virtual_routing_xml');
+			$xml = simplexml_load_file($route);
+			$vars=get_object_vars($xml);
+			$room_id=str_replace("ROOM","",$node);
+
+
+			$xml_data=get_object_vars($vars['room'][$room_id-1]);
+			$count=$vars['room'][$room_id-1]->route->count();
+			//make json_object   &&  switches 
+			for ($i=0;$i<$count;$i++){
+				if (substr($xml_data['route'][$i]->capability , 0 ,strlen($capability)) == $capability){
+					$node_new=$xml_data['route'][$i]->destination->node;
+					$cap_new=$xml_data['route'][$i]->destination->capability;
+					$url="$testbed/node/$node_pref".$node_new."/capability/$cap_pref".$cap_new."/latestreading/json";
+				}
+			}
+*/
+
+		}
+	}
+	else{
+		$url="$testbed/node/$node_pref".$node."/capability/$cap_pref".$capability."/latestreading/json";
+	}
+		echo file_get_contents($url);
+}
+
+//return array();
+}

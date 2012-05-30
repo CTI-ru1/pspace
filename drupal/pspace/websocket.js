@@ -1,23 +1,20 @@
 //ff & chrome only
 
-//write to a div
-
 function message(value2add){
     onwsmessage(value2add);
 }
-/*
-function clearMessages(){
-    document.getElementById('area').value="";
-}
-*/
 
 
+var t=setTimeout("ping()",30000);
+var sockets=new Array();
+var sock_count=0;
 
 //socket
 function connect(hostname,node,capability){ //se full morfi ta nodes/capabilityies ( mazi me prefix)
+	var mysock_id=sock_count;
+	sock_count++;
 
- 
-    var socket;
+
     var host = "ws://"+hostname+"/readings.ws";
 
     var protocol = "SUB@"+node+"@"+capability;
@@ -37,39 +34,38 @@ function connect(hostname,node,capability){ //se full morfi ta nodes/capabilityi
 
     try{
 
-    if(!("WebSocket" in window)){
-     //    message("You have a browser that does not support Websockets!");
+   if(!("WebSocket" in window)){
+       //  message("You have a browser that does not support Websockets!");
                  if(!("MozWebSocket" in window)){
-                    //     message("You have a browser that does not support MozWebsockets!");
+                       //  message("You have a browser that does not support MozWebsockets!");
                          return -1;
                 }
 
 
         else {
-            socket = new MozWebSocket(host,encodedProtocol);
-               // message('You have a browser that supports MozWebSockets');
+            sockets[mysock_id] = new MozWebSocket(host,encodedProtocol);
+
+              //  message('You have a browser that supports MozWebSockets');
         }
     }
     else {
 //        message("encodedProtocol="+encodedProtocol);
 //        message("Protocol="+protocol);
-        socket = new WebSocket(host,encodedProtocol);
-     //   message('You have a browser that supports WebSockets');
+        sockets[mysock_id] = new WebSocket(host,encodedProtocol);
+//        message('You have a browser that supports WebSockets');
     }
-        socket.onopen = function(){
-		ping(socket);
-        //    message('socket.onopen ');
+        sockets[mysock_id].onopen = function(){
+   //         message('socket.onopen ');
 //            message('Socket Status: '+socket.readyState+' (open)'+"");
         }
 
-		
-        socket.onmessage = function(msg){
-            if (!(msg.data instanceof Blob)) {  //mporw na to dw sto uberdust live
+        sockets[mysock_id].onmessage = function(msg){
+            if (!(msg.data instanceof Blob)) {
                 message(msg.data);
             }
         }
-       socket.onclose = function(){
-           // message("socket.onclose")
+       sockets[mysock_id].onclose = function(){
+  //          message("socket.onclose")
 //            message('Socket Status: '+socket.readyState+' (Closed)'+"");
         }
 
@@ -83,7 +79,11 @@ function connect(hostname,node,capability){ //se full morfi ta nodes/capabilityi
 
 function ping()
 {
-        socket.send("ping");
+	var i=0;
+	for (i=0;i<sock_count;i++){
+    	    sockets[i].sendsocket.send("ping");
+	}
 	var t=setTimeout("ping()",30000);
+
 }
 

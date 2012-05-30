@@ -1,0 +1,164 @@
+<?php
+
+/*
+Notes:
+
+enum Mode      { AUTO, COOL, DRY, HEAT, FAN };
+enum FanSpeed  { NONE_SP, DEFAULT_SP, LOW_SP, MED_SP, HIGH_SP };
+enum TimerTime { HOUR000, HOUR005, HOUR010, HOUR015, HOUR020, HOUR025,HOUR030, HOUR035, HOUR040,
+                 HOUR045, HOUR050, HOUR055, HOUR060, HOUR065, HOUR070,HOUR075, HOUR080, HOUR085,
+                 HOUR090, HOUR095, HOUR100, HOUR110, HOUR120, HOUR130,HOUR140, HOUR150, HOUR160,
+                 HOUR170, HOUR180, HOUR190, HOUR200, HOUR210, HOUR220,HOUR230, HOUR240 };
+
+Mode [0,4] (enum)
+FanSpeed [0,4] (enum)
+
+Timer On [0-34] (enum)
+Timer Off [0-34] (enum)
+
+SLEEP [0,1]
+ON/OFF [0,1]
+
+SWING (0,1)??
+Air / Cleanair / Led / Turbo buttons
+
+*/
+
+
+//-------------------------------------------
+//-------------- P-Space HOOKS --------------
+//-------------------------------------------
+
+function pspace_ac_menu()
+{
+$stoixeia=array();
+
+$stoixeia['ac']=array(
+	'title'=>t('Air Condition'),
+	'page callback'=>'air_condition',
+	'access callback'=>TRUE,
+	'menu_name'=> 'main-menu',
+	'weight'=> 5,
+);
+
+return $stoixeia;
+}
+
+
+function pspace_ac_permission() {
+  
+  $perm_array= array(
+    'ac_control' => array(
+      'title' => t('Control AirCondition'), 
+    ),
+  );
+	
+  return $perm_array;
+}
+
+
+//-------------------------------------------
+//-------------- P-Space PAGE --------------
+//-------------------------------------------
+
+
+function air_condition()
+{
+$rarray=array();
+
+$rarray['settings_form'] = drupal_get_form('ac_form'); 
+  
+return $rarray;
+}
+
+
+//-------------------------------------------
+//-------------- Config Form ----------------
+//-------------------------------------------
+
+
+function ac_form($form_state)
+{
+
+$form=array();
+
+// get_values
+ $testbed = variable_get_value('pspace_rest');
+ $var_node = variable_get_value('pspace_node_prefix');
+ $var_cap = variable_get_value('pspace_capability_prefix');
+
+//--------- Uberdust Settings ------------//
+
+   $form['ac_1'] = array(
+              '#title' => t('AC 1'),
+               '#type' => 'fieldset',
+        '#collapsible' => TRUE,
+          '#collapsed' => FALSE,
+    );
+	
+//form
+
+$form['ac_1']['temp'] = array( 
+	'#type' => 'textfield',
+	'#title' => t('Temperature'),  
+	'#size' => 3, 
+	'#maxlength' => 2, 
+/*	'#attributes'=>array(
+			'style'=>'',
+			),
+*/
+//	'#required' =>TRUE,
+//	'#default_value' => $var_rest,
+);
+
+
+$form['ac_1']['mode'] = array( 
+    '#type' => 'select',
+    '#title' => t('Mode'),
+    '#options' => array(
+          0 => t('AUTO'),
+          1 => t('COOL'),
+          2 => t('DRY'),
+          3 => t('HEAT'),
+          4 => t('FAN'),
+       ),
+);
+
+$form['ac_1']['fan_speed'] = array( 
+    '#type' => 'select',
+    '#title' => t('Fan Speed'),
+    '#options' => array(
+//       0 => t('NONE_SP'),
+          1 => t('DEFAULT_SP'),
+          2 => t('LOW_SP'),
+          3 => t('MED_SP'),
+          4 => t('HIGH_SP'),
+       ),
+);
+
+
+$form['ac_1']['submit_button'] = array( 
+    '#type' => 'submit',	
+    '#value' => t('Submit'),
+);
+ 
+
+return $form;
+}
+
+//-------------------------------------------
+//--------- Form Validate & Submit ----------
+//-------------------------------------------
+
+function ac_form_validate($form_id, &$form_state)
+{
+
+// 17<=temp<=30
+// fan_speed [0,4]
+// mode [0,4] 
+
+}
+
+function ac_form_submit($form_id, &$form_state)
+{
+}

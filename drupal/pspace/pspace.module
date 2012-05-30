@@ -351,7 +351,12 @@ if ($form_state['values']['threshold'] == 0)
 function configure_form_submit($form_id, &$form_state)
 {
 
+
+ if (substr($form_state['values']['rest'], -1) == "/")
+	$form_state['values']['rest']=substr($form_state['values']['rest'], 0,strlen($form_state['values']['rest'])-1);
+
 variable_set_value('pspace_rest',$form_state['values']['rest']);
+
 variable_set_value('pspace_node_prefix',$form_state['values']['node_prefix']);
 variable_set_value('pspace_capability_prefix',$form_state['values']['cap_prefix']);
 variable_set_value('pspace_non_reading',$form_state['values']['non_reading']);
