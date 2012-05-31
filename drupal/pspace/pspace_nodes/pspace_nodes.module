@@ -95,6 +95,10 @@ if( $node_name && (isset($status[$node_pref.$node_name]))){
 				}
 				unset($dest);
 			}
+			else{
+				if (module_exists('pspace_graph'))
+					$node[$i][0]=l($node[$i][0],"graph/$node_name/".$node[$i][0]."/100");
+			}
 
 			$i++;
 		}else{

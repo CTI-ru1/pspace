@@ -1,0 +1,8 @@
+name = P-Space Graph Page
+core = 7.x
+description = Graph Page
+package = Uberdust
+
+dependencies[] = pspace
+
+version = "7.x-1.0"
