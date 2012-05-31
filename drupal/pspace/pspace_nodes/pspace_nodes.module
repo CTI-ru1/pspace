@@ -171,8 +171,10 @@ if( $node_name && (isset($status[$node_pref.$node_name]))){
 				'#markup' => "<p><h3>Send Commands</h3></p><br>\n",
 			);
 
+			$i=0;
 			foreach($node as $values){
-				$rarray['commands_form'][$values[0]] = drupal_get_form('send_command',$values,$node_name);
+				$rarray['commands_form'][$values[0]] = drupal_get_form('sendcommand_'.$i,$values,$node_name);
+				$i++;
 			}
 		}
 	}
@@ -346,6 +348,21 @@ else
 //-------------------------------------------
 //----------- Send Command Form -------------
 //-------------------------------------------
+
+function pspace_nodes_forms($form_id, $args)
+{
+$forms=array();
+	$tokens=explode('_',$form_id);
+	if($tokens[0]=='sendcommand')
+	{
+		$forms[$form_id] = array(
+		    'callback' => 'send_command',
+		);
+	}
+return $forms;
+
+}
+
 
 function send_command($form, &$form_state, $args,$node_name){
 	$form=array();
