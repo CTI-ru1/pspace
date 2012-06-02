@@ -87,10 +87,9 @@ foreach ($status as $key=>$values) {
 
 		foreach($values as $v_capabilities){
 			$temp=get_object_vars($v_capabilities);	
-			$vcap[str_replace($cap_pref,"",$temp['capability'])]=$temp['reading'];
+			$vcap[str_replace($cap_pref,"",$temp['capability'])]=isset($temp['reading'])?$temp['reading'] : $temp['stringReading'] ;
 			unset($temp);
 		}
-		//drupal_set_message("<pre>".print_r($vcap,TRUE)."</pre>");
 
 		$count=$vars['room'][$room_id-1]->route->count();
 		$xml_data=get_object_vars($vars['room'][$room_id-1]);
