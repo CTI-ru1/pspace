@@ -1,0 +1,9 @@
+This is a Toyotomi HVAC remote controller library, for the Arduino platform 
+based on the CoAP protocol.
+
+Created as a project in one of the Computer Engineering and Informatics Department 
+(University of Patras) courses, called "Distributed Systems II". It is based on 
+Kontodimas’s ‘Toyotomi’ library and uses the CoAP protocol to communicate with Uberdust. 
+It implements the following operations: ON/OFF, TEMP UP, TEMP DOWN, MODE, FAN.  
+Due to the limited memory size of Arduino Pro Mini, the rest operations not supported yet 
+(they are included in “not_supported” file, though)
