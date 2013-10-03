@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset='utf-8'> 
+	<title>Garden Programmer</title>
+	<link rel="stylesheet" type="text/css" href="style/jquery-ui-1.8.18.css" />
+    <link rel="stylesheet" type="text/css" href="style/post.css" />
+</head>
+<body>	
+<script src="script/jquery-1.9.1.js"></script>
+<script src="script/jquery-ui-1.10.3.js"></script>
+<script type="text/javascript" src="http://uberdust.cti.gr/js/ws/uberdustws.js"></script>
+<center>
+<table id="simple_table">
+ <thead><tr><th>Valve3 OFF</th><th>Valve3 ON</th><th>Clock Sync</th> </tr></thead>
+<tbody>
+ <tr class="odd"><td><img src="images/newswitch1.png" id="ROOM1_ceilinglight1" onclick="switch_off(this.id)" alt="newswitch1.png">
+</td><td><img src="images/newswitch0.png"  id="ROOM2_ceilinglight1" onclick="switch_on(this.id)" alt="newswitch0.png"></td> 
+<td><img src="http://etc.usf.edu/clipart/33000/33074/clock-03-20_33074_sm.gif" id="ROOM3_ceilinglight1" onclick="time()" alt="clock.gif">
+</td> </tr>
+</tbody>
+</table>
+<div id="slider-range"></div>
+		<span id="time"></span> 
+<div id="slider-duration"></div>
+    <span id="duration"></span>
+<div id="selected_options">
+    <span id="time"></span>
+    <select onchange="test()" id="selected_opt">
+        <option value="-1" selected>-Επανάληψη-</option>
+        <option value="10">Μία φορά</option>
+        <option value="0">Κάθε Μέρα</option>
+	<option value="1">Κάθε Κυριακή</option>
+	<option value="2">Κάθε Δευτέρα</option>
+	<option value="3">Κάθε Τρίτη</option>
+        <option value="4">Κάθε Τετάρτη</option>
+	<option value="5">Κάθε Πέμπτη</option>
+        <option value="6">Κάθε Παρασκευή</option>
+	<option value="7">Κάθε Σάββατο</option>
+    </select>
+	 <button onclick="myFunction()">Προσθήκη ποτίσματος</button>
+</div>
+
+<!-- the result of the search will be rendered inside this div -->
+<div id="result"></div>
+<div id="update_div"></div>
+<div id="cur_time"></div>
+<div id="valve3"></div>
+<div id="program"></div>
+<div id="temperature"></div>
+<div id="moisture"></div>
+
+            <iframe style="width:100%; height:400px; margin: 10px 0 10px;" allowTransparency="true"
+                    src="http://uberdust.cti.gr/rest/testbed/5/node/urn:pspace:0xcb5/capability/urn:node:capability:temperature/chart/limit/10/bare"></iframe>
+            <iframe style="width:100%; height:400px; margin: 10px 0 10px;" allowTransparency="true"
+                    src="http://uberdust.cti.gr/rest/testbed/5/node/urn:pspace:0xcb5/capability/urn:node:capability:moisture/chart/limit/10/bare"></iframe>
+        
+                    <!--iframe style="width:100%; height:400px; margin: 10px 0 10px;" allowTransparency="true"
+                    src="http://uberdust.cti.gr/rest/testbed/5/node/urn:pspace:0xcb5/capability/urn:node:capability:valve3/chart/limit/10/bare"></iframe>
+        
+<!-- <div id='outerdiv' class='outerclass'>
+    <iframe src="http://uberdust.cti.gr/rest/testbed/5/node/urn:pspace:0xcb5/capability/urn:node:capability:temperature/chart/limit/100" id='inneriframe' class='inneriframe' scrolling=no marginwidth="4px" height="300px" frameborder="0"> Sorry, your browser doesn't support iframes</iframe>
+</div>
+<div id='outerdiv' class='outerclass'>
+<iframe src="http://uberdust.cti.gr/rest/testbed/5/node/urn:pspace:0xcb5/capability/urn:node:capability:valve3/chart/limit/10" id='inneriframe' marginwidth="4px" height="400px" frameborder="0"> Sorry, your browser doesn't support iframes</iframe>
+</div> -->
+</center>
+<script>
+var result_test = 10;
+var selected_hour = 0;
+var selected_minutes = 0;
+var duration = 1;
+$('#brightness_chart').load('http://uberdust.cti.gr/rest/testbed/5/node/urn:pspace:0xcb5/capability/urn:node:capability:brightness/chart/limit/10 #container');
+$("#slider-duration").slider({
+				range: false,
+				min: 1,
+				max: 900,
+				values: [120],
+				slide: slideDuration
+			});
+$("#slider-range").slider({
+                range: false,
+                min: 0,
+                max: 1439,
+                values: [540],
+                slide: slideTime
+            });
+function slideTime(event, ui){
+    var val0 = $("#slider-range").slider("values", 0),
+        minutes0 = parseInt(val0 % 60, 10),
+        hours0 = parseInt(val0 / 60 % 24, 10);
+	selected_hour =  hours0 - 3;
+	selected_minutes = minutes0;
+    startTime = getTime(hours0, minutes0);
+    $("#time").text('Start time: ' + startTime);
+}
+function slideDuration(event, ui){
+    var val = $("#slider-duration").slider("values", 0),
+        seconds = 0,
+        minutes = 0 ;
+    seconds = parseInt(val % 60, 10);
+    minutes = parseInt(val / 60, 10);
+    duration = parseInt(val);
+    $("#duration").text('Duration: ' + minutes + ' minutes' + ' and ' + seconds + ' seconds');
+}
+function getTime(hours, minutes) {
+    var time = null;
+    minutes = minutes + "";
+    if (hours < 12) {
+        time = "AM";
+    }
+    else {
+        time = "PM";
+    }
+    if (hours == 0) {
+        hours = 12;
+    }
+    if (hours > 12) {
+        hours = hours - 12;
+    }
+    if (minutes.length == 1) {
+        minutes = "0" + minutes;
+    }
+    return hours + ":" + minutes + " " + time;
+}
+slideTime();
+slideDuration();
+test();
+function test() {
+    var get_id = document.getElementById('selected_opt');
+    result_test = get_id.options[get_id.selectedIndex].value;
+}
+function change_hour() {
+    var get_id = document.getElementById('selected_hour');
+    selected_hour = get_id.options[get_id.selectedIndex].value;
+}
+function myFunction()
+{
+	var status = "H"+selected_hour+"H"+"M"+selected_minutes+"M"+"S0S"+"D"+duration+"D"+"W"+result_test+"W";
+	var posting = $.post( "http://uberdust.cti.gr/rest/testbed/5/node/urn:pspace:0xcb5/capability/urn:node:capability:program/"+status+"/" );
+}
+
+function switch_on(id){
+	var posting = $.post( "http://uberdust.cti.gr/rest/testbed/5/node/urn:pspace:0xcb5/capability/urn:node:capability:valve3/1/" );
+		}
+function switch_off(id){
+	var posting = $.post( "http://uberdust.cti.gr/rest/testbed/5/node/urn:pspace:0xcb5/capability/urn:node:capability:valve3/0/" , function(data) {
+			      $('#update_div').html(data);
+			    }
+			);
+		}
+function time(){
+	var unix = Math.round(+new Date()/1000);
+    	var posting = $.post( "http://uberdust.cti.gr/rest/testbed/5/node/urn:pspace:0xcb5/capability/urn:node:capability:time/"+unix+"/" );
+}
+
+connect("uberdust.cti.gr","urn:pspace:0xcb5","urn:node:capability:valve3", function message(value2add){
+            var myspan=document.getElementById('valve3');
+            myspan.innerHTML=value2add.substring(37)+"<br>";
+        });
+connect("uberdust.cti.gr","urn:pspace:0xcb5","urn:node:capability:time", function message(value2add){
+            var myspan=document.getElementById('cur_time');
+            var unix = Math.round(+new Date()/1000);
+	    var garden_time = "1"+value2add.substring(74);
+            myspan.innerHTML=value2add.substring(37)+" Διαφορά: "+(unix-parseInt(garden_time))+"<br>";
+        });
+connect("uberdust.cti.gr","urn:pspace:0xcb5","urn:node:capability:program", function message(value2add){
+            var myspan=document.getElementById('program');
+            myspan.innerHTML=value2add.substring(37)+"<br>";
+        });
+connect("uberdust.cti.gr","urn:pspace:0xcb5","urn:node:capability:temperature", function message(value2add){
+            var myspan=document.getElementById('temperature');
+            myspan.innerHTML=value2add.substring(37)+"<br>";
+        });
+connect("uberdust.cti.gr","urn:pspace:0xcb5","urn:node:capability:moisture", function message(value2add){
+            var myspan=document.getElementById('moisture');
+            myspan.innerHTML=value2add.substring(37)+"<br>";
+        });
+</script>
+
+</body>
+</html>

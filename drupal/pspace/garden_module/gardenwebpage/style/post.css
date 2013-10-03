@@ -1,0 +1,42 @@
+#outerdiv
+{
+   width:840px;
+   height:400px;
+   overflow:hidden;
+   position:relative;
+}
+
+#inneriframe
+{
+   position:absolute;
+   top:0px;
+   left:-6px;
+   width:1050px;
+   height:430px;
+}
+
+#slider-range,#slider-duration{
+	width:600px;
+}
+
+#slider-range,#slider-duration,#time,#duration{
+	margin:5px;display:block;
+}
+
+img {
+	max-width: 100px;
+	height: auto;
+	width: auto\9; /* ie8 */
+}
+
+@media screen and (max-width:620px) {
+/* tiny styles */
+
+	#slider-range,#slider-duration,#simple_table{
+		width:80%;
+	}
+	img {
+		max-width: 70px;
+	}
+}
+
