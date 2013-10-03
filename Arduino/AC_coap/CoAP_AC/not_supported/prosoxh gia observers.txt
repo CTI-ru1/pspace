@@ -1,0 +1,17 @@
+Phgaine sto : C:\Users\GiorgosPap\Documents\Arduino\libraries\ArduinoCoAPmaster\coap_conf.h
+
+
+kai analoga me ta resources pou exeis, allakse kai ton antistoixo ari8mo sta ekshs:
+
+
+
+#define CONF_MAX_RESOURCES  1
+#define CONF_MAX_OBSERVERS  1
+
+
+An gia paradeigma 8elw na xrhsimopoihsw 8 resources 8a valw:
+
+
+
+#define CONF_MAX_RESOURCES  8
+#define CONF_MAX_OBSERVERS  8
